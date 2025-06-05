@@ -58,13 +58,13 @@ importers:
         specifier: 15.2.2
         version: 15.2.2(eslint@9.22.0(jiti@1.21.7))(typescript@5.8.3)
       postcss:
-        specifier: ^8.5.4
+        specifier: ^8.5.3
         version: 8.5.4
       tailwindcss:
-        specifier: ^4.0.14
-        version: 4.0.14
+        specifier: ^4.1.8
+        version: 4.1.8
       typescript:
-        specifier: ^5.8.3
+        specifier: ^5.8.2
         version: 5.8.3
 
 packages:
@@ -1755,8 +1755,8 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
 
-  tailwindcss@4.0.14:
-    resolution: {integrity: sha512-92YT2dpt671tFiHH/e1ok9D987N9fHD5VWoly1CdPD/Cd1HMglvZwP3nx2yTj2lbXDAHt8QssZkxTLCCTNL+xw==}
+  tailwindcss@4.1.8:
+    resolution: {integrity: sha512-kjeW8gjdxasbmFKpVGrGd5T4i40mV5J2Rasw48QARfYeQ8YS9x02ON9SFWax3Qf616rt4Cp3nVNIj6Hd1mP3og==}
 
   tapable@2.2.1:
     resolution: {integrity: sha512-GNzQvQTOIP6RyTfE2Qxb8ZVlNmw0n88vp1szwWRimP02mnTsx3Wtn5qRdqY9w2XduFNUgvOwhNnQsjwCp+kqaQ==}
@@ -3801,7 +3801,7 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
-  tailwindcss@4.0.14: {}
+  tailwindcss@4.1.8: {}
 
   tapable@2.2.1: {}
 
