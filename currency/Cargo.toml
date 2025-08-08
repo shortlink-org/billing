@@ -15,7 +15,7 @@ tracing-opentelemetry = "0.31.0"
 spandoc = "0.2.2"
 
 # gRPC with Tonic
-tonic = { version = "0.12.3", features = ["tls"] }
+tonic = { version = "0.14.0", features = ["tls"] }
 
 # Redis and Serialization
 deadpool-redis = { version = "0.20.0", features = ["rt_tokio_1"] }
