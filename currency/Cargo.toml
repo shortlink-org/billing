@@ -28,7 +28,7 @@ rust_decimal = { version = "1.36", features = ["serde"] }
 rust_decimal_macros = "1.36.0"
 tokio = { version = "1.44.1", features = ["full"] }
 async-trait = "0.1.88"
-warp = "0.3.7"
+warp = "0.4.0"
 utoipa = "5.3.1"
 dotenvy = "0.15.7"
 thiserror = "2.0.12"
