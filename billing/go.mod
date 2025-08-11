@@ -16,7 +16,7 @@ require (
 	github.com/segmentio/encoding v0.4.1
 	github.com/shopspring/decimal v1.4.0
 	github.com/shortlink-org/shortlink 510e6143a4d1
-	github.com/spf13/viper v1.19.0
+	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
 	github.com/stripe/stripe-go/v82 v82.4.0
 	go.opentelemetry.io/otel v1.37.0
