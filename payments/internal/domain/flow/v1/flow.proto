@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package domain.flow.v1;
+
+option go_package = "github.com/shortlink-org/billing/payments/internal/domain/flow/v1;flowv1";
+
+// Payment lifecycle flow (single flow; SCA step is optional).
+enum PaymentFlow {
+  PAYMENT_FLOW_UNSPECIFIED = 0;
+
+  // Intent created, processing not finished.
+  PAYMENT_FLOW_CREATED = 1;
+
+  // Customer action required (3DS/SCA). This step is optional.
+  PAYMENT_FLOW_WAITING_FOR_CONFIRMATION = 2;
+
+  // Funds reserved (authorization hold).
+  PAYMENT_FLOW_AUTHORIZED = 3;
+
+  // Funds captured; payment completed.
+  PAYMENT_FLOW_PAID = 4;
+
+  // Payment refunded (full or partial).
+  PAYMENT_FLOW_REFUNDED = 5;
+
+  // Canceled by user/system (including void of authorization).
+  PAYMENT_FLOW_CANCELED = 6;
+
+  // Error/declined (including reverse/expire of authorization).
+  PAYMENT_FLOW_FAILED = 7;
+}
