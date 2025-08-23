@@ -1,4 +1,4 @@
-module github.com/shortlink-org/shortlink/boundaries/billing/billing
+module github.com/shortlink-org/billing/billing
 
 go 1.25.0
 
