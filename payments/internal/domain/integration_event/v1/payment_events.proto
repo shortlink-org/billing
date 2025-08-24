@@ -1,0 +1,161 @@
+// -----------------------------------------------------------------------------
+// Public integration events for the Payments service.
+// Produced by: payments
+// Consumed by: billing (and other domains)
+// Transport:   Kafka (single topic recommended)
+// Contract:    Provider-agnostic, stable, backward-compatible.
+// IMPORTANT:   Never include provider secrets or raw provider IDs here.
+// -----------------------------------------------------------------------------
+syntax = "proto3";
+
+package domain.integration_event.v1;
+
+option go_package = "github.com/shortlink-org/billing/payments/integration_event/v1;integrationeventv1";
+
+import "google/type/money.proto";
+
+/*
+Kafka usage (recommended):
+- Topic:  payments.payment.events.v1
+- Key:    payment_id (string, UUID)  // ensures per-aggregate ordering
+- Value:  PaymentEvent (wrapper below)
+
+Event evolution:
+- Add new fields with new field numbers (preserve existing).
+- Add new event types as new entries in the `oneof` (no renames).
+- Do not remove/repurpose existing fields.
+*/
+
+// -----------------------------------------------------------------------------
+// Minimal metadata for idempotency and ordering across services.
+// -----------------------------------------------------------------------------
+message EventMeta {
+  // Unique ID of this specific event (use for de-duplication).
+  string event_id   = 1; // UUIDv7 — unique per event
+
+  // Aggregate identifier (payment UUID). Also used as Kafka key.
+  string payment_id = 2;
+
+  // Link to Billing’s invoice. Stored as string to avoid tight coupling on UUID libs.
+  string invoice_id = 3;
+
+  // Aggregate version AFTER applying the event.
+  // Combined with per-key partitioning this gives a total order per payment.
+  uint64 version    = 4;
+}
+
+// -----------------------------------------------------------------------------
+// Business dimensions needed by consumers to rehydrate semantics.
+// -----------------------------------------------------------------------------
+enum PaymentKind {
+  PAYMENT_KIND_UNSPECIFIED = 0;
+  PAYMENT_KIND_ONE_TIME    = 1; // one-off purchase
+  PAYMENT_KIND_SUBSCRIPTION= 2; // recurring charge
+}
+
+enum CaptureMode {
+  CAPTURE_MODE_UNSPECIFIED = 0;
+  CAPTURE_MODE_IMMEDIATE   = 1; // charge now (Created -> Paid)
+  CAPTURE_MODE_MANUAL      = 2; // authorize now, capture later (hold)
+}
+
+// Canonical cancellation categories (provider-agnostic).
+// Map any provider-specific codes into these buckets; unknown -> *_UNSPECIFIED.
+enum CancelReason {
+  CANCEL_REASON_UNSPECIFIED = 0;
+  CANCEL_REASON_USER        = 1; // user canceled
+  CANCEL_REASON_SYSTEM      = 2; // business rule/timeout
+  CANCEL_REASON_AUTH_VOID   = 3; // authorization voided
+  CANCEL_REASON_DUPLICATE   = 4; // duplicate request
+}
+
+// Canonical failure categories (provider-agnostic).
+enum FailureReason {
+  FAILURE_REASON_UNSPECIFIED        = 0;
+  FAILURE_REASON_DECLINED           = 1;
+  FAILURE_REASON_INSUFFICIENT_FUNDS = 2;
+  FAILURE_REASON_CARD_EXPIRED       = 3;
+  FAILURE_REASON_INVALID_CVV        = 4;
+  FAILURE_REASON_SCA_NOT_COMPLETED  = 5;
+  FAILURE_REASON_FRAUD_SUSPECTED    = 6;
+  FAILURE_REASON_NETWORK_ERROR      = 7;
+  FAILURE_REASON_PROVIDER_ERROR     = 8;
+}
+
+// Money notes:
+// - google.type.Money must respect currency exponent (units/nanos).
+// - Producer guarantees valid values; consumers may validate if needed.
+
+// -----------------------------------------------------------------------------
+// Public events (provider-agnostic).
+// Each event type implies the resulting FSM state on the consumer side.
+// -----------------------------------------------------------------------------
+
+// -> CREATED
+// Initial aggregate creation. Carries business intent and capture strategy.
+message PaymentCreated {
+  google.type.Money amount = 1;     // total to charge
+  PaymentKind kind = 2;             // one-time or subscription
+  CaptureMode capture_mode = 3;     // immediate vs manual (hold)
+}
+
+// -> WAITING_FOR_CONFIRMATION (optional step)
+// Emitted only when SCA/3DS is required by the provider/rules.
+message PaymentWaitingForConfirmation {}
+
+// -> AUTHORIZED
+// Authorization hold placed on customer’s payment method.
+message PaymentAuthorized {
+  google.type.Money authorized_amount = 1; // hold amount
+}
+
+// -> PAID
+// Funds captured; payment completed.
+message PaymentPaid {
+  google.type.Money captured_amount = 1;   // settled amount
+}
+
+// -> REFUNDED
+// At least one refund succeeded (partial or full). Entered on first success.
+message PaymentRefunded {
+  google.type.Money refund_amount = 1;     // this refund operation
+  google.type.Money total_refunded = 2;    // cumulative after this op
+  bool full = 3;                            // total_refunded == captured
+}
+
+// (no state change, remains PAID)
+// Refund attempt failed. Use FailureReason to categorize.
+message PaymentRefundFailed {
+  FailureReason reason = 1;
+}
+
+// -> CANCELED
+// Canceled by user/system; includes void of authorization.
+message PaymentCanceled {
+  CancelReason reason = 1;
+}
+
+// -> FAILED
+// Declined, authorization reversed/expired, or other terminal error.
+message PaymentFailed {
+  FailureReason reason = 1;
+}
+
+// -----------------------------------------------------------------------------
+// Single-topic wrapper: publish this message with key = payment_id.
+// Consumers switch on the `oneof` to handle specific event types.
+// -----------------------------------------------------------------------------
+message PaymentEvent {
+  EventMeta meta = 1;
+
+  oneof event {
+    PaymentCreated                 created                  = 10; // -> CREATED
+    PaymentWaitingForConfirmation  waiting_for_confirmation = 11; // -> WAITING_FOR_CONFIRMATION
+    PaymentAuthorized              authorized               = 12; // -> AUTHORIZED
+    PaymentPaid                    paid                     = 13; // -> PAID
+    PaymentRefunded                refunded                 = 14; // -> REFUNDED
+    PaymentRefundFailed            refund_failed            = 15; // (no state change)
+    PaymentCanceled                canceled                 = 16; // -> CANCELED
+    PaymentFailed                  failed                   = 17; // -> FAILED
+  }
+}

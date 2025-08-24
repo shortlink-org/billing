@@ -1,0 +1,101 @@
+// payments/internal/domain/event/v1/payment_events.proto
+syntax = "proto3";
+
+package domain.event.v1;
+
+option go_package = "github.com/shortlink-org/billing/payments/internal/domain/event/v1;eventv1";
+
+import "google/type/money.proto";
+
+// -----------------------------------------------------------------------------
+// Minimal event metadata for idempotency and ordering.
+// -----------------------------------------------------------------------------
+message EventMeta {
+  string event_id   = 1; // UUIDv7 — unique for each event
+  string payment_id = 2; // Aggregate ID (payment UUID)
+  uint64 version    = 3; // Aggregate version AFTER applying this event
+}
+
+// -----------------------------------------------------------------------------
+// Business dimensions
+// -----------------------------------------------------------------------------
+enum PaymentKind {
+  PAYMENT_KIND_UNSPECIFIED = 0;
+  PAYMENT_KIND_ONE_TIME    = 1; // one-off purchase
+  PAYMENT_KIND_SUBSCRIPTION= 2; // recurring charge
+}
+
+// Capture strategy (authorization vs immediate capture).
+enum CaptureMode {
+  CAPTURE_MODE_UNSPECIFIED = 0;
+  CAPTURE_MODE_IMMEDIATE   = 1; // charge now (Created -> Paid)
+  CAPTURE_MODE_MANUAL      = 2; // authorize now, capture later (hold)
+}
+
+// -----------------------------------------------------------------------------
+// Domain events
+// NOTE: We do not duplicate FSM state in the schema — the event type implies it.
+// For clarity, each event below documents the resulting FSM state.
+// -----------------------------------------------------------------------------
+
+// State after applying: CREATED
+// Initializes the payment aggregate with billing linkage and amount.
+message PaymentCreated {
+  EventMeta meta = 1;
+  string invoice_id = 2;              // Reference to Billing
+  google.type.Money amount = 3;       // Total amount to charge
+  PaymentKind kind = 4;               // Business semantics
+  CaptureMode capture_mode = 5;       // Capture strategy (immediate/manual)
+}
+
+// State after applying: WAITING_FOR_CONFIRMATION
+// Customer action required (3DS/SCA). Optional step in the flow.
+message PaymentWaitingForConfirmation {
+  EventMeta meta = 1;
+}
+
+// State after applying: AUTHORIZED
+// Authorization hold placed on the customer’s payment method.
+message PaymentAuthorized {
+  EventMeta meta = 1;
+  google.type.Money authorized_amount = 2;
+}
+
+// State after applying: PAID
+// Funds captured; payment completed.
+message PaymentPaid {
+  EventMeta meta = 1;
+  google.type.Money captured_amount = 2;
+}
+
+// State after applying: REFUNDED
+// Refund succeeded (partial or full). Entered on the first successful refund.
+message PaymentRefunded {
+  EventMeta meta = 1;
+  google.type.Money refund_amount = 2;   // This refund operation
+  google.type.Money total_refunded = 3;  // Cumulative after this operation
+  bool full = 4;                         // total_refunded == captured
+}
+
+// State after applying: stays PAID (no state change)
+// Refund attempt failed — the aggregate remains in PAID.
+message PaymentRefundFailed {
+  EventMeta meta = 1;
+  string reason_code = 2;
+  string reason_message = 3;
+}
+
+// State after applying: CANCELED
+// Payment canceled by user/system (includes void of authorization).
+message PaymentCanceled {
+  EventMeta meta = 1;
+  string reason = 2;
+}
+
+// State after applying: FAILED
+// Payment failed (declined, reverse, or authorization expired).
+message PaymentFailed {
+  EventMeta meta = 1;
+  string reason_code = 2;
+  string reason_message = 3;
+}
