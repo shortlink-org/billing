@@ -7,6 +7,26 @@ option go_package = "github.com/shortlink-org/billing/payments/internal/domain/e
 
 import "google/type/money.proto";
 
+enum CancelReason {
+  CANCEL_REASON_UNSPECIFIED = 0;
+  CANCEL_REASON_USER        = 1;
+  CANCEL_REASON_SYSTEM      = 2;
+  CANCEL_REASON_AUTH_VOID   = 3;
+  CANCEL_REASON_DUPLICATE   = 4;
+}
+
+enum FailureReason {
+  FAILURE_REASON_UNSPECIFIED        = 0;
+  FAILURE_REASON_DECLINED           = 1;
+  FAILURE_REASON_INSUFFICIENT_FUNDS = 2;
+  FAILURE_REASON_CARD_EXPIRED       = 3;
+  FAILURE_REASON_INVALID_CVV        = 4;
+  FAILURE_REASON_SCA_NOT_COMPLETED  = 5;
+  FAILURE_REASON_FRAUD_SUSPECTED    = 6;
+  FAILURE_REASON_NETWORK_ERROR      = 7;
+  FAILURE_REASON_PROVIDER_ERROR     = 8;
+}
+
 // -----------------------------------------------------------------------------
 // Minimal event metadata for idempotency and ordering.
 // -----------------------------------------------------------------------------
@@ -14,6 +34,7 @@ message EventMeta {
   string event_id   = 1; // UUIDv7 — unique for each event
   string payment_id = 2; // Aggregate ID (payment UUID)
   uint64 version    = 3; // Aggregate version AFTER applying this event
+  string invoice_id = 4;
 }
 
 // -----------------------------------------------------------------------------
@@ -81,21 +102,19 @@ message PaymentRefunded {
 // Refund attempt failed — the aggregate remains in PAID.
 message PaymentRefundFailed {
   EventMeta meta = 1;
-  string reason_code = 2;
-  string reason_message = 3;
+  FailureReason reason = 2;
 }
 
 // State after applying: CANCELED
 // Payment canceled by user/system (includes void of authorization).
 message PaymentCanceled {
   EventMeta meta = 1;
-  string reason = 2;
+  CancelReason reason = 2;
 }
 
 // State after applying: FAILED
 // Payment failed (declined, reverse, or authorization expired).
 message PaymentFailed {
   EventMeta meta = 1;
-  string reason_code = 2;
-  string reason_message = 3;
+  FailureReason reason = 2;
 }

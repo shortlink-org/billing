@@ -1,8 +1,6 @@
 package payment
 
-import (
-	"context"
-)
+import "context"
 
 // Repository abstracts persistence for Payment aggregates.
 // Save must persist the aggregate and its uncommitted events atomically (with outbox) in real impl.
@@ -11,7 +9,9 @@ type Repository interface {
 	Get(ctx context.Context, id string) (*Payment, error)
 
 	// Save persists the aggregate. expectedVersion is the version the caller believes is stored.
-	// Implementations must enforce optimistic concurrency: if stored version != expectedVersion, return ErrVersionConflict.
-	// On success, implementations SHOULD clear Uncommitted events (commit point).
+	// Implementations MUST:
+	//   - call p.Invariants() and return ErrInvariantViolation if it fails;
+	//   - enforce optimistic concurrency (if stored version != expectedVersion, return ErrVersionConflict);
+	//   - on success, clear uncommitted events (commit point).
 	Save(ctx context.Context, p *Payment, expectedVersion uint64) error
 }

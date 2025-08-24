@@ -3,27 +3,29 @@ module github.com/shortlink-org/billing/payments
 go 1.25.0
 
 require (
+	github.com/cucumber/godog v0.15.1
 	github.com/looplab/fsm v1.0.3
-	github.com/onsi/ginkgo/v2 v2.25.1
-	github.com/onsi/gomega v1.38.1
+	github.com/shopspring/decimal v1.4.0
 	github.com/stretchr/testify v1.10.0
 	google.golang.org/genproto v0.0.0-20250818200422-3122310a409c
 	google.golang.org/protobuf v1.36.8
 )
 
 require (
-	github.com/Masterminds/semver/v3 v3.4.0 // indirect
+	github.com/cucumber/gherkin/go/v26 v26.2.0 // indirect
+	github.com/cucumber/messages/go/v21 v21.0.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/go-logr/logr v1.4.3 // indirect
-	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
+	github.com/gofrs/uuid v4.3.1+incompatible // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20250820193118-f64d9cf942d6 // indirect
+	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
+	github.com/hashicorp/go-memdb v1.3.4 // indirect
+	github.com/hashicorp/golang-lru v0.5.4 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	go.uber.org/automaxprocs v1.6.0 // indirect
-	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/net v0.43.0 // indirect
-	golang.org/x/sys v0.35.0 // indirect
-	golang.org/x/text v0.28.0 // indirect
-	golang.org/x/tools v0.36.0 // indirect
+	github.com/spf13/cobra v1.7.0 // indirect
+	github.com/spf13/pflag v1.0.7 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+tool github.com/cucumber/godog/cmd/godog
