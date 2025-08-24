@@ -6,7 +6,7 @@ require (
 	github.com/cucumber/godog v0.15.1
 	github.com/looplab/fsm v1.0.3
 	github.com/shopspring/decimal v1.4.0
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.0
 	google.golang.org/genproto v0.0.0-20250818200422-3122310a409c
 	google.golang.org/protobuf v1.36.8
 )
