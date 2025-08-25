@@ -7,7 +7,7 @@ require (
 	github.com/google/wire v0.7.0
 	github.com/shortlink-org/shortlink v0.0.0-20250824095527-b9e32c523250
 	github.com/spf13/viper v1.20.1
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.0
 )
 
 require (
