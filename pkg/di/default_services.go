@@ -16,7 +16,6 @@ import (
 	"github.com/shortlink-org/shortlink/pkg/di/pkg/autoMaxPro"
 	"github.com/shortlink-org/shortlink/pkg/di/pkg/config"
 	"github.com/shortlink-org/shortlink/pkg/di/pkg/profiling"
-	"github.com/shortlink-org/shortlink/pkg/di/providers"
 	"github.com/shortlink-org/shortlink/pkg/logger"
 	"github.com/shortlink-org/shortlink/pkg/observability/metrics"
 )
@@ -38,21 +37,63 @@ type DefaultServices struct {
 // DefaultSet provides all common/default services for dependency injection
 var DefaultSet = wire.NewSet(
 	// Context
-	providers.ProvideContext,
+	ProvideContext,
 
 	// Common services
-	providers.ProvideLogger,
-	providers.ProvideConfig,
-	providers.ProvideAutoMaxPro,
+	ProvideLogger,
+	ProvideConfig,
+	ProvideAutoMaxPro,
 
 	// Observability
-	providers.ProvideTracer,
-	providers.ProvideMetrics,
-	providers.ProvidePprofEndpoint,
+	ProvideTracer,
+	ProvideMetrics,
+	ProvidePprofEndpoint,
 
 	// Group all into DefaultServices struct
 	NewDefaultServices,
 )
+
+// Provider functions for each service
+
+// ProvideContext provides a background context
+func ProvideContext() context.Context {
+	return context.Background()
+}
+
+// ProvideLogger provides a configured logger instance
+func ProvideLogger() logger.Logger {
+	// Initialize logger with default configuration
+	log, _ := logger.NewLogger(logger.INFO, logger.JSON)
+	return log
+}
+
+// ProvideConfig provides application configuration
+func ProvideConfig() (*config.Config, error) {
+	// Load configuration from environment or config files
+	return config.New()
+}
+
+// ProvideAutoMaxPro provides automatic max process configuration
+func ProvideAutoMaxPro() autoMaxPro.AutoMaxPro {
+	return autoMaxPro.New()
+}
+
+// ProvideTracer provides OpenTelemetry tracer
+func ProvideTracer() trace.TracerProvider {
+	// Initialize tracer with default configuration
+	return trace.NewNoopTracerProvider()
+}
+
+// ProvideMetrics provides metrics monitoring
+func ProvideMetrics() (*metrics.Monitoring, error) {
+	// Initialize metrics monitoring
+	return metrics.New()
+}
+
+// ProvidePprofEndpoint provides profiling endpoint
+func ProvidePprofEndpoint() profiling.PprofEndpoint {
+	return profiling.New()
+}
 
 // NewDefaultServices creates a new DefaultServices instance with all dependencies
 func NewDefaultServices(
