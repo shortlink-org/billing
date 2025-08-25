@@ -9,7 +9,6 @@ import (
 
 	"github.com/shortlink-org/billing/payments/internal/application/payments/ports"
 	"github.com/shortlink-org/billing/payments/internal/application/payments/repository"
-	"github.com/shortlink-org/billing/payments/internal/application/payments/repository/memory"
 	eventv1 "github.com/shortlink-org/billing/payments/internal/domain/event/v1"
 	flowv1 "github.com/shortlink-org/billing/payments/internal/domain/flow/v1"
 	"github.com/shortlink-org/billing/payments/internal/domain/payment"

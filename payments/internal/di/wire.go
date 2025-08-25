@@ -1,10 +1,11 @@
+//go:generate go tool wire
 //go:build wireinject
-// +build wireinject
 
 package di
 
 import (
 	"github.com/google/wire"
+
 	"github.com/shortlink-org/billing/payments/internal/application/payments/usecase/create"
 	"github.com/shortlink-org/billing/payments/internal/application/payments/usecase/refund"
 )
