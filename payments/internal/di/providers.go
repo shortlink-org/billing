@@ -15,6 +15,11 @@ type PaymentUsecases struct {
 	RefundPayment *refund.Handler
 }
 
+// PaymentServices holds all payment-related services for dependency injection.
+type PaymentServices struct {
+	RefundService *refund.Service
+}
+
 // PaymentConfig holds configuration for payment services.
 type PaymentConfig struct {
 	StripeAPIKey string
@@ -108,5 +113,31 @@ func ProvideRefundHandler(
 	return &refund.Handler{
 		Repo:     repo,
 		Provider: provider,
+	}
+}
+
+// ProvideRefundService provides the refund payment service.
+func ProvideRefundService(
+	repo repository.PaymentRepository,
+	provider ports.PaymentProvider,
+) *refund.Service {
+	return refund.NewService(repo, provider)
+}
+
+// NewPaymentServices creates and wires all payment services with their dependencies.
+func NewPaymentServices(cfg PaymentConfig) *PaymentServices {
+	// Infrastructure layer - repositories
+	paymentRepo := memory.New()
+
+	// Infrastructure layer - external providers
+	stripeProvider := stripeadp.New(stripeadp.Config{
+		APIKey: cfg.StripeAPIKey,
+	})
+
+	// Application layer - services
+	refundService := refund.NewService(paymentRepo, stripeProvider)
+
+	return &PaymentServices{
+		RefundService: refundService,
 	}
 }
