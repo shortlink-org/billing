@@ -48,34 +48,63 @@ This use case describes how the **Currency Service** handles the conversion of m
 
 ```plantuml
 @startuml
-' Define colors
-skinparam actorBackgroundColor #ADD8E6
-skinparam participantBackgroundColor #90EE90
-skinparam noteBackgroundColor #FFFFE0
+!define SUCCESS_COLOR #90EE90
+!define ERROR_COLOR #FFB6C1
+!define WAITING_COLOR #FFFFE0
+
+skinparam sequence {
+    ArrowColor black
+    LifeLineBorderColor black
+    LifeLineBackgroundColor white
+    ParticipantBorderColor black
+    ParticipantBackgroundColor white
+    ParticipantFontColor black
+    ActorBorderColor black
+    ActorBackgroundColor white
+    ActorFontColor black
+}
 
 actor Client as client
-participant CurrencyService as service
-participant ValidationModule as validator
-participant ExchangeRateFetcher as fetcher
-participant LoggingSystem as logger
+participant "Currency Service" as service
+participant "Validation Module" as validator
+participant "Exchange Rate Fetcher" as fetcher
+participant "Logging System" as logger
 
-client -> service: Request currency conversion (100 USD to EUR)
-service -> validator: Validate input parameters
-validator --> service: Parameters valid
-service -> fetcher: Fetch current exchange rate (USD to EUR)
-fetcher --> service: Return exchange rate (e.g., 0.85)
-service -> service: Calculate converted amount (100 * 0.85 = 85 EUR)
-service -> logger: Log transaction details
-service --> client: Return converted amount (85 EUR)
+== Currency Conversion Request ==
+client -> service ++: POST /convert {amount: 100, from: "USD", to: "EUR"}
+note right of service #WAITING_COLOR: Processing conversion request
 
+service -> validator ++: Validate input parameters
+alt Valid parameters
+    validator --> service --: SUCCESS_COLOR: Parameters valid
+    service -> fetcher ++: Fetch current exchange rate (USD to EUR)
+    note right of fetcher #WAITING_COLOR: Fetching exchange rate
+    alt Exchange rate found
+        fetcher --> service --: SUCCESS_COLOR: Return exchange rate (0.85)
+        service -> service: Calculate converted amount (100 * 0.85 = 85 EUR)
+        service -> logger ++: Log transaction details
+        logger --> service --: SUCCESS_COLOR: Transaction logged
+        service --> client --: SUCCESS_COLOR: 200 OK + Converted amount (85 EUR)
+    else Exchange rate not found
+        fetcher --> service --: ERROR_COLOR: Rate not available
+        service --> client --: ERROR_COLOR: 404 Exchange Rate Not Found
+    else Exchange rate service unavailable
+        fetcher --> service --: ERROR_COLOR: Service unavailable
+        service --> client --: ERROR_COLOR: 503 Service Unavailable
+    end
+else Invalid parameters
+    validator --> service --: ERROR_COLOR: Invalid currency codes or amount
+    service --> client --: ERROR_COLOR: 400 Bad Request
+end
+
+== Error Scenarios ==
 note over client, service
-1. The client requests to convert an amount from one currency to another.
-2. The service validates the input parameters.
-3. The service fetches the latest exchange rate from the exchange rate fetcher.
-4. The converted amount is calculated.
-5. The transaction is logged for auditing purposes.
-6. The service returns the converted amount to the client.
+Error Handling:
+- Red (ERROR_COLOR): Invalid input, rate not found, service unavailable
+- Green (SUCCESS_COLOR): Successful validation, rate found, conversion completed
+- Yellow (WAITING_COLOR): Processing states, fetching data
 end note
+
 @enduml
 ```
 

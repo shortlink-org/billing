@@ -31,31 +31,103 @@
 
 ```plantuml
 @startuml
-skinparam actorBackgroundColor #ADD8E6
-skinparam participantBackgroundColor #90EE90
-skinparam noteBackgroundColor #FFFFE0
-skinparam sequenceLifeLineBackgroundColor #FF6347
+!define SUCCESS_COLOR #90EE90
+!define ERROR_COLOR #FFB6C1
+!define WAITING_COLOR #FFFFE0
 
-actor CronJob as cron
-participant CurrencyService as service
-participant CacheStore as cache
-participant BloombergAPI as bloomberg
-participant YahooAPI as yahoo
-participant RateDatabase as db
+skinparam sequence {
+    ArrowColor black
+    LifeLineBorderColor black
+    LifeLineBackgroundColor white
+    ParticipantBorderColor black
+    ParticipantBackgroundColor white
+    ParticipantFontColor black
+    ActorBorderColor black
+    ActorBackgroundColor white
+    ActorFontColor black
+}
 
-cron -> service: Trigger scheduled rate refresh
-service -> bloomberg: Fetch latest rates from Bloomberg
-bloomberg --> service: Return updated rates
-service -> yahoo: Fetch latest rates from Yahoo
-yahoo --> service: Return updated rates
-service -> cache: Update cache with new rates
-service -> db: Update database with new rates
+actor "Cron Job" as cron
+participant "Currency Service" as service
+participant "Cache Store" as cache
+participant "Bloomberg API" as bloomberg
+participant "Yahoo API" as yahoo
+participant "Rate Database" as db
+participant "Monitoring" as monitor
 
+== Scheduled Rate Refresh ==
+cron -> service ++: Trigger scheduled rate refresh
+note right of service #WAITING_COLOR: Starting scheduled refresh
+
+service -> bloomberg ++: Fetch latest rates from Bloomberg
+note right of bloomberg #WAITING_COLOR: Fetching from Bloomberg
+alt Bloomberg Success
+    bloomberg --> service --: SUCCESS_COLOR: Return updated rates
+    service -> yahoo ++: Fetch latest rates from Yahoo
+    note right of yahoo #WAITING_COLOR: Fetching from Yahoo
+    alt Yahoo Success
+        yahoo --> service --: SUCCESS_COLOR: Return updated rates
+        service -> cache ++: Update cache with new rates
+        alt Cache Update Success
+            cache --> service --: SUCCESS_COLOR: Cache updated
+            service -> db ++: Update database with new rates
+            alt Database Update Success
+                db --> service --: SUCCESS_COLOR: Database updated
+                service -> monitor ++: Log successful refresh
+                monitor --> service --: SUCCESS_COLOR: Logged
+                service --> cron --: SUCCESS_COLOR: Refresh completed
+            else Database Update Failed
+                db --> service --: ERROR_COLOR: Database update failed
+                service -> monitor ++: Log database error
+                monitor --> service --: ERROR_COLOR: Error logged
+                service --> cron --: ERROR_COLOR: Partial failure
+            end
+        else Cache Update Failed
+            cache --> service --: ERROR_COLOR: Cache update failed
+            service -> db ++: Update database with new rates
+            db --> service --: SUCCESS_COLOR: Database updated
+            service -> monitor ++: Log cache warning
+            monitor --> service --: WAITING_COLOR: Warning logged
+            service --> cron --: WAITING_COLOR: Completed with warnings
+        end
+    else Yahoo Failed
+        yahoo --> service --: ERROR_COLOR: Yahoo API error
+        service -> cache ++: Update cache with Bloomberg rates only
+        cache --> service --: SUCCESS_COLOR: Cache updated
+        service -> db ++: Update database with Bloomberg rates
+        db --> service --: SUCCESS_COLOR: Database updated
+        service -> monitor ++: Log Yahoo failure
+        monitor --> service --: ERROR_COLOR: Error logged
+        service --> cron --: WAITING_COLOR: Partial success
+    end
+else Bloomberg Failed
+    bloomberg --> service --: ERROR_COLOR: Bloomberg API error
+    service -> yahoo ++: Fetch rates from Yahoo (fallback)
+    alt Yahoo Success
+        yahoo --> service --: SUCCESS_COLOR: Return updated rates
+        service -> cache ++: Update cache with Yahoo rates
+        cache --> service --: SUCCESS_COLOR: Cache updated
+        service -> db ++: Update database with Yahoo rates
+        db --> service --: SUCCESS_COLOR: Database updated
+        service -> monitor ++: Log Bloomberg failure
+        monitor --> service --: ERROR_COLOR: Error logged
+        service --> cron --: WAITING_COLOR: Completed with fallback
+    else Both APIs Failed
+        yahoo --> service --: ERROR_COLOR: Yahoo API error
+        service -> monitor ++: Log critical failure
+        monitor --> service --: ERROR_COLOR: Critical error logged
+        service --> cron --: ERROR_COLOR: Refresh failed
+    end
+end
+
+== Color Legend ==
 note over cron, service
-1. Cron job triggers periodic refresh.
-2. Service fetches latest rates from Bloomberg and Yahoo.
-3. Updates cache and database with new rates.
+Color Coding:
+- Green (SUCCESS_COLOR): Successful operations
+- Red (ERROR_COLOR): API failures, critical errors
+- Yellow (WAITING_COLOR): Processing states, partial success, warnings
 end note
+
 @enduml
 ```
 
