@@ -6,115 +6,135 @@ package domain.event.v1;
 option go_package = "github.com/shortlink-org/billing/payments/internal/domain/event/v1;eventv1";
 
 import "google/type/money.proto";
-
-enum CancelReason {
-  CANCEL_REASON_UNSPECIFIED = 0;
-  CANCEL_REASON_USER        = 1;
-  CANCEL_REASON_SYSTEM      = 2;
-  CANCEL_REASON_AUTH_VOID   = 3;
-  CANCEL_REASON_DUPLICATE   = 4;
-}
-
-enum FailureReason {
-  FAILURE_REASON_UNSPECIFIED        = 0;
-  FAILURE_REASON_DECLINED           = 1;
-  FAILURE_REASON_INSUFFICIENT_FUNDS = 2;
-  FAILURE_REASON_CARD_EXPIRED       = 3;
-  FAILURE_REASON_INVALID_CVV        = 4;
-  FAILURE_REASON_SCA_NOT_COMPLETED  = 5;
-  FAILURE_REASON_FRAUD_SUSPECTED    = 6;
-  FAILURE_REASON_NETWORK_ERROR      = 7;
-  FAILURE_REASON_PROVIDER_ERROR     = 8;
-}
+import "google/protobuf/field_mask.proto";
 
 // -----------------------------------------------------------------------------
-// Minimal event metadata for idempotency and ordering.
+// Enums
 // -----------------------------------------------------------------------------
-message EventMeta {
-  string event_id   = 1; // UUIDv7 — unique for each event
-  string payment_id = 2; // Aggregate ID (payment UUID)
-  uint64 version    = 3; // Aggregate version AFTER applying this event
-  string invoice_id = 4;
-}
 
-// -----------------------------------------------------------------------------
-// Business dimensions
-// -----------------------------------------------------------------------------
+// Payment kind for business semantics.
 enum PaymentKind {
   PAYMENT_KIND_UNSPECIFIED = 0;
-  PAYMENT_KIND_ONE_TIME    = 1; // one-off purchase
-  PAYMENT_KIND_SUBSCRIPTION= 2; // recurring charge
+  PAYMENT_KIND_ONE_TIME    = 1; // one-time payment
+  PAYMENT_KIND_RECURRING   = 2; // subscription/recurring
 }
 
-// Capture strategy (authorization vs immediate capture).
+// Mode of capture.
 enum CaptureMode {
   CAPTURE_MODE_UNSPECIFIED = 0;
-  CAPTURE_MODE_IMMEDIATE   = 1; // charge now (Created -> Paid)
-  CAPTURE_MODE_MANUAL      = 2; // authorize now, capture later (hold)
+  CAPTURE_MODE_IMMEDIATE   = 1; // auth + capture immediately
+  CAPTURE_MODE_MANUAL      = 2; // auth separately, capture later
+}
+
+// Reason for cancellation.
+enum CancelReason {
+  CANCEL_REASON_UNSPECIFIED = 0;
+  CANCEL_REASON_USER        = 1; // canceled by user
+  CANCEL_REASON_SYSTEM      = 2; // canceled by system
+  CANCEL_REASON_AUTH_VOID   = 3; // void of authorization
+  CANCEL_REASON_DUPLICATE   = 4; // duplicate payment
+}
+
+// Reason for payment failure (provider-agnostic buckets).
+enum FailureReason {
+  FAILURE_REASON_UNSPECIFIED   = 0;
+  FAILURE_REASON_DECLINED      = 1; // declined by issuer/PSP
+  FAILURE_REASON_REVERSED      = 2; // reversed/disputed
+  FAILURE_REASON_AUTH_EXPIRED  = 3; // authorization expired
+  FAILURE_REASON_NETWORK_ERROR = 4; // network/integration error
 }
 
 // -----------------------------------------------------------------------------
-// Domain events
-// NOTE: We do not duplicate FSM state in the schema — the event type implies it.
-// For clarity, each event below documents the resulting FSM state.
+// Metadata
 // -----------------------------------------------------------------------------
 
-// State after applying: CREATED
+// Minimal event metadata for idempotency and ordering.
+message EventMeta {
+  bytes  event_id   = 1; // 16-byte UUID — unique event ID (usually UUIDv7)
+  bytes  payment_id = 2; // 16-byte UUID — aggregate/payment ID
+  uint64 version    = 3; // aggregate version AFTER applying this event
+  bytes  invoice_id = 4; // 16-byte UUID — related invoice/billing ID
+
+  // FieldMask allows specifying which fields are intentionally set.
+  google.protobuf.FieldMask field_mask = 100;
+}
+
+// -----------------------------------------------------------------------------
+// Events (Payment lifecycle)
+// -----------------------------------------------------------------------------
+
 // Initializes the payment aggregate with billing linkage and amount.
+// Final state after applying: CREATED.
 message PaymentCreated {
-  EventMeta meta = 1;
-  string invoice_id = 2;              // Reference to Billing
-  google.type.Money amount = 3;       // Total amount to charge
-  PaymentKind kind = 4;               // Business semantics
-  CaptureMode capture_mode = 5;       // Capture strategy (immediate/manual)
+  EventMeta           meta         = 1;
+  bytes               invoice_id   = 2; // 16-byte UUID — reference to billing
+  google.type.Money   amount       = 3; // amount to charge
+  PaymentKind         kind         = 4; // business semantics
+  CaptureMode         capture_mode = 5; // capture strategy
+
+  google.protobuf.FieldMask field_mask = 100;
 }
 
-// State after applying: WAITING_FOR_CONFIRMATION
-// Customer action required (3DS/SCA). Optional step in the flow.
+// Optional step when SCA/3DS is required by provider/rules.
+// Final state: WAITING_FOR_CONFIRMATION.
 message PaymentWaitingForConfirmation {
   EventMeta meta = 1;
+
+  google.protobuf.FieldMask field_mask = 100;
 }
 
-// State after applying: AUTHORIZED
-// Authorization hold placed on the customer’s payment method.
+// Authorization hold placed on customer's payment method.
+// Final state: AUTHORIZED (or remains AUTHORIZED if incremental).
 message PaymentAuthorized {
-  EventMeta meta = 1;
-  google.type.Money authorized_amount = 2;
+  EventMeta         meta              = 1;
+  google.type.Money authorized_amount = 2; // incremental authorized amount
+
+  google.protobuf.FieldMask field_mask = 100;
 }
 
-// State after applying: PAID
 // Funds captured; payment completed.
+// Final state: PAID (incremental capture allowed).
 message PaymentPaid {
-  EventMeta meta = 1;
-  google.type.Money captured_amount = 2;
+  EventMeta         meta            = 1;
+  google.type.Money captured_amount = 2; // incremental captured amount
+
+  google.protobuf.FieldMask field_mask = 100;
 }
 
-// State after applying: REFUNDED
-// Refund succeeded (partial or full). Entered on the first successful refund.
+// Refund succeeded (partial or full).
+// If `full` is true, final state becomes REFUNDED; else remains PAID.
 message PaymentRefunded {
-  EventMeta meta = 1;
-  google.type.Money refund_amount = 2;   // This refund operation
-  google.type.Money total_refunded = 3;  // Cumulative after this operation
-  bool full = 4;                         // total_refunded == captured
+  EventMeta         meta           = 1;
+  google.type.Money refund_amount  = 2; // amount for this refund op
+  google.type.Money total_refunded = 3; // cumulative total refunded after this op
+  bool              full           = 4; // total_refunded == captured total
+
+  google.protobuf.FieldMask field_mask = 100;
 }
 
-// State after applying: stays PAID (no state change)
-// Refund attempt failed — the aggregate remains in PAID.
+// Refund attempt failed (no state change, remains PAID).
 message PaymentRefundFailed {
-  EventMeta meta = 1;
+  EventMeta     meta   = 1;
   FailureReason reason = 2;
+
+  google.protobuf.FieldMask field_mask = 100;
 }
 
-// State after applying: CANCELED
 // Payment canceled by user/system (includes void of authorization).
+// Final state: CANCELED.
 message PaymentCanceled {
-  EventMeta meta = 1;
+  EventMeta    meta   = 1;
   CancelReason reason = 2;
+
+  google.protobuf.FieldMask field_mask = 100;
 }
 
-// State after applying: FAILED
-// Payment failed (declined, reverse, or authorization expired).
+// Payment failed (declined, reversed, or authorization expired).
+// Final state: FAILED.
 message PaymentFailed {
-  EventMeta meta = 1;
-  FailureReason reason = 2;
+  EventMeta     meta    = 1;
+  FailureReason reason  = 2;
+  string        message = 3; // optional provider/service text
+
+  google.protobuf.FieldMask field_mask = 100;
 }

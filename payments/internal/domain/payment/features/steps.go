@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/cucumber/godog"
+	"github.com/google/uuid"
 
 	eventv1 "github.com/shortlink-org/billing/payments/internal/domain/event/v1"
 	flowv1 "github.com/shortlink-org/billing/payments/internal/domain/flow/v1"
@@ -21,8 +22,8 @@ import (
 
 type paymentWorld struct {
 	ctx      context.Context
-	id       string
-	invoice  string
+	id       uuid.UUID
+	invoice  uuid.UUID
 	amount   *money.Money
 	kind     eventv1.PaymentKind
 	mode     eventv1.CaptureMode
@@ -33,8 +34,8 @@ type paymentWorld struct {
 
 func (w *paymentWorld) reset(ctx context.Context) {
 	w.ctx = ctx
-	w.id = ""
-	w.invoice = ""
+	w.id = uuid.Nil
+	w.invoice = uuid.Nil
 	w.amount = nil
 	w.kind = eventv1.PaymentKind_PAYMENT_KIND_UNSPECIFIED
 	w.mode = eventv1.CaptureMode_CAPTURE_MODE_UNSPECIFIED
@@ -47,7 +48,7 @@ func (w *paymentWorld) ensureCreated() error {
 	if w.p != nil {
 		return nil
 	}
-	if w.id == "" || w.invoice == "" || w.amount == nil ||
+	if w.id == uuid.Nil || w.invoice == uuid.Nil || w.amount == nil ||
 		w.kind == eventv1.PaymentKind_PAYMENT_KIND_UNSPECIFIED ||
 		w.mode == eventv1.CaptureMode_CAPTURE_MODE_UNSPECIFIED {
 		return nil
@@ -111,8 +112,8 @@ func kindFrom(s string) (eventv1.PaymentKind, error) {
 	switch strings.ToUpper(strings.TrimSpace(s)) {
 	case "ONE_TIME":
 		return eventv1.PaymentKind_PAYMENT_KIND_ONE_TIME, nil
-	case "SUBSCRIPTION":
-		return eventv1.PaymentKind_PAYMENT_KIND_SUBSCRIPTION, nil
+	case "SUBSCRIPTION", "RECURRING":
+		return eventv1.PaymentKind_PAYMENT_KIND_RECURRING, nil
 	default:
 		return eventv1.PaymentKind_PAYMENT_KIND_UNSPECIFIED, fmt.Errorf("unknown kind %q", s)
 	}
@@ -137,28 +138,21 @@ func eventTypeName(m any) string {
 	return t.Name()
 }
 
-// --- reason parsers (tolerant, case-insensitive) ---
+// --- reason parsers (align with internal event FailureReason) ---
 
 func parseFailureReason(s string) (eventv1.FailureReason, error) {
 	switch strings.ToUpper(strings.TrimSpace(s)) {
 	case "DECLINED":
 		return eventv1.FailureReason_FAILURE_REASON_DECLINED, nil
-	case "INSUFFICIENT_FUNDS":
-		return eventv1.FailureReason_FAILURE_REASON_INSUFFICIENT_FUNDS, nil
-	case "CARD_EXPIRED":
-		return eventv1.FailureReason_FAILURE_REASON_CARD_EXPIRED, nil
-	case "INVALID_CVV":
-		return eventv1.FailureReason_FAILURE_REASON_INVALID_CVV, nil
-	case "SCA_NOT_COMPLETED", "SCA":
-		return eventv1.FailureReason_FAILURE_REASON_SCA_NOT_COMPLETED, nil
-	case "FRAUD_SUSPECTED", "FRAUD":
-		return eventv1.FailureReason_FAILURE_REASON_FRAUD_SUSPECTED, nil
-	case "NETWORK_ERROR":
+	case "REVERSED":
+		return eventv1.FailureReason_FAILURE_REASON_REVERSED, nil
+	case "AUTH_EXPIRED", "EXPIRED":
+		return eventv1.FailureReason_FAILURE_REASON_AUTH_EXPIRED, nil
+	case "NETWORK_ERROR", "NETWORK":
 		return eventv1.FailureReason_FAILURE_REASON_NETWORK_ERROR, nil
-	case "PROVIDER_ERROR":
-		return eventv1.FailureReason_FAILURE_REASON_PROVIDER_ERROR, nil
 	default:
-		return eventv1.FailureReason_FAILURE_REASON_UNSPECIFIED, fmt.Errorf("unknown failure reason %q", s)
+		return eventv1.FailureReason_FAILURE_REASON_UNSPECIFIED,
+			fmt.Errorf("unknown failure reason %q", s)
 	}
 }
 
@@ -180,7 +174,15 @@ func parseCancelReason(s string) (eventv1.CancelReason, error) {
 // ---- steps (Given/When/Then) ----
 
 func (w *paymentWorld) givenPaymentCreatedForInvoice(id, invoice string) error {
-	w.id, w.invoice = id, invoice
+	pid, err := uuid.Parse(strings.TrimSpace(id))
+	if err != nil {
+		return fmt.Errorf("bad payment id: %w", err)
+	}
+	inv, err := uuid.Parse(strings.TrimSpace(invoice))
+	if err != nil {
+		return fmt.Errorf("bad invoice id: %w", err)
+	}
+	w.id, w.invoice = pid, inv
 	return w.ensureCreated()
 }
 
@@ -506,7 +508,11 @@ func InitializeScenario(sc *godog.ScenarioContext) {
 	sc.Step(`^a refund attempt fails with reason "([^"]+)"$`, w.whenRefundFailedWithReason)
 	sc.Step(`^I cancel the payment with reason "([^"]+)"$`, w.whenCancel)
 	sc.Step(`^I fail the payment with reason "([^"]+)"$`, w.whenFail)
-	sc.Step(`^I fail the payment with reason "([^"]+)" and message "([^"]+)"$`, w.whenFail)
+	// message parameter (if present in features) is ignored by aggregate;
+	// keep signature for compatibility:
+	sc.Step(`^I fail the payment with reason "([^"]+)" and message "([^"]+)"$`, func(reason, _ string) error {
+		return w.whenFail(reason)
+	})
 	sc.Step(`^I try to refund "([^"]+)"$`, w.whenTryRefund)
 	sc.Step(`^I try to cancel the payment with reason "([^"]+)"$`, w.whenTryCancel)
 

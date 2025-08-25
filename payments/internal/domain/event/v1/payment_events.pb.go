@@ -12,6 +12,7 @@ import (
 	money "google.golang.org/genproto/googleapis/type/money"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -24,14 +25,115 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Payment kind for business semantics.
+type PaymentKind int32
+
+const (
+	PaymentKind_PAYMENT_KIND_UNSPECIFIED PaymentKind = 0
+	PaymentKind_PAYMENT_KIND_ONE_TIME    PaymentKind = 1 // one-time payment
+	PaymentKind_PAYMENT_KIND_RECURRING   PaymentKind = 2 // subscription/recurring
+)
+
+// Enum value maps for PaymentKind.
+var (
+	PaymentKind_name = map[int32]string{
+		0: "PAYMENT_KIND_UNSPECIFIED",
+		1: "PAYMENT_KIND_ONE_TIME",
+		2: "PAYMENT_KIND_RECURRING",
+	}
+	PaymentKind_value = map[string]int32{
+		"PAYMENT_KIND_UNSPECIFIED": 0,
+		"PAYMENT_KIND_ONE_TIME":    1,
+		"PAYMENT_KIND_RECURRING":   2,
+	}
+)
+
+func (x PaymentKind) Enum() *PaymentKind {
+	p := new(PaymentKind)
+	*p = x
+	return p
+}
+
+func (x PaymentKind) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (PaymentKind) Descriptor() protoreflect.EnumDescriptor {
+	return file_domain_event_v1_payment_events_proto_enumTypes[0].Descriptor()
+}
+
+func (PaymentKind) Type() protoreflect.EnumType {
+	return &file_domain_event_v1_payment_events_proto_enumTypes[0]
+}
+
+func (x PaymentKind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use PaymentKind.Descriptor instead.
+func (PaymentKind) EnumDescriptor() ([]byte, []int) {
+	return file_domain_event_v1_payment_events_proto_rawDescGZIP(), []int{0}
+}
+
+// Mode of capture.
+type CaptureMode int32
+
+const (
+	CaptureMode_CAPTURE_MODE_UNSPECIFIED CaptureMode = 0
+	CaptureMode_CAPTURE_MODE_IMMEDIATE   CaptureMode = 1 // auth + capture immediately
+	CaptureMode_CAPTURE_MODE_MANUAL      CaptureMode = 2 // auth separately, capture later
+)
+
+// Enum value maps for CaptureMode.
+var (
+	CaptureMode_name = map[int32]string{
+		0: "CAPTURE_MODE_UNSPECIFIED",
+		1: "CAPTURE_MODE_IMMEDIATE",
+		2: "CAPTURE_MODE_MANUAL",
+	}
+	CaptureMode_value = map[string]int32{
+		"CAPTURE_MODE_UNSPECIFIED": 0,
+		"CAPTURE_MODE_IMMEDIATE":   1,
+		"CAPTURE_MODE_MANUAL":      2,
+	}
+)
+
+func (x CaptureMode) Enum() *CaptureMode {
+	p := new(CaptureMode)
+	*p = x
+	return p
+}
+
+func (x CaptureMode) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (CaptureMode) Descriptor() protoreflect.EnumDescriptor {
+	return file_domain_event_v1_payment_events_proto_enumTypes[1].Descriptor()
+}
+
+func (CaptureMode) Type() protoreflect.EnumType {
+	return &file_domain_event_v1_payment_events_proto_enumTypes[1]
+}
+
+func (x CaptureMode) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use CaptureMode.Descriptor instead.
+func (CaptureMode) EnumDescriptor() ([]byte, []int) {
+	return file_domain_event_v1_payment_events_proto_rawDescGZIP(), []int{1}
+}
+
+// Reason for cancellation.
 type CancelReason int32
 
 const (
 	CancelReason_CANCEL_REASON_UNSPECIFIED CancelReason = 0
-	CancelReason_CANCEL_REASON_USER        CancelReason = 1
-	CancelReason_CANCEL_REASON_SYSTEM      CancelReason = 2
-	CancelReason_CANCEL_REASON_AUTH_VOID   CancelReason = 3
-	CancelReason_CANCEL_REASON_DUPLICATE   CancelReason = 4
+	CancelReason_CANCEL_REASON_USER        CancelReason = 1 // canceled by user
+	CancelReason_CANCEL_REASON_SYSTEM      CancelReason = 2 // canceled by system
+	CancelReason_CANCEL_REASON_AUTH_VOID   CancelReason = 3 // void of authorization
+	CancelReason_CANCEL_REASON_DUPLICATE   CancelReason = 4 // duplicate payment
 )
 
 // Enum value maps for CancelReason.
@@ -63,11 +165,11 @@ func (x CancelReason) String() string {
 }
 
 func (CancelReason) Descriptor() protoreflect.EnumDescriptor {
-	return file_domain_event_v1_payment_events_proto_enumTypes[0].Descriptor()
+	return file_domain_event_v1_payment_events_proto_enumTypes[2].Descriptor()
 }
 
 func (CancelReason) Type() protoreflect.EnumType {
-	return &file_domain_event_v1_payment_events_proto_enumTypes[0]
+	return &file_domain_event_v1_payment_events_proto_enumTypes[2]
 }
 
 func (x CancelReason) Number() protoreflect.EnumNumber {
@@ -76,21 +178,18 @@ func (x CancelReason) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use CancelReason.Descriptor instead.
 func (CancelReason) EnumDescriptor() ([]byte, []int) {
-	return file_domain_event_v1_payment_events_proto_rawDescGZIP(), []int{0}
+	return file_domain_event_v1_payment_events_proto_rawDescGZIP(), []int{2}
 }
 
+// Reason for payment failure (provider-agnostic buckets).
 type FailureReason int32
 
 const (
-	FailureReason_FAILURE_REASON_UNSPECIFIED        FailureReason = 0
-	FailureReason_FAILURE_REASON_DECLINED           FailureReason = 1
-	FailureReason_FAILURE_REASON_INSUFFICIENT_FUNDS FailureReason = 2
-	FailureReason_FAILURE_REASON_CARD_EXPIRED       FailureReason = 3
-	FailureReason_FAILURE_REASON_INVALID_CVV        FailureReason = 4
-	FailureReason_FAILURE_REASON_SCA_NOT_COMPLETED  FailureReason = 5
-	FailureReason_FAILURE_REASON_FRAUD_SUSPECTED    FailureReason = 6
-	FailureReason_FAILURE_REASON_NETWORK_ERROR      FailureReason = 7
-	FailureReason_FAILURE_REASON_PROVIDER_ERROR     FailureReason = 8
+	FailureReason_FAILURE_REASON_UNSPECIFIED   FailureReason = 0
+	FailureReason_FAILURE_REASON_DECLINED      FailureReason = 1 // declined by issuer/PSP
+	FailureReason_FAILURE_REASON_REVERSED      FailureReason = 2 // reversed/disputed
+	FailureReason_FAILURE_REASON_AUTH_EXPIRED  FailureReason = 3 // authorization expired
+	FailureReason_FAILURE_REASON_NETWORK_ERROR FailureReason = 4 // network/integration error
 )
 
 // Enum value maps for FailureReason.
@@ -98,24 +197,16 @@ var (
 	FailureReason_name = map[int32]string{
 		0: "FAILURE_REASON_UNSPECIFIED",
 		1: "FAILURE_REASON_DECLINED",
-		2: "FAILURE_REASON_INSUFFICIENT_FUNDS",
-		3: "FAILURE_REASON_CARD_EXPIRED",
-		4: "FAILURE_REASON_INVALID_CVV",
-		5: "FAILURE_REASON_SCA_NOT_COMPLETED",
-		6: "FAILURE_REASON_FRAUD_SUSPECTED",
-		7: "FAILURE_REASON_NETWORK_ERROR",
-		8: "FAILURE_REASON_PROVIDER_ERROR",
+		2: "FAILURE_REASON_REVERSED",
+		3: "FAILURE_REASON_AUTH_EXPIRED",
+		4: "FAILURE_REASON_NETWORK_ERROR",
 	}
 	FailureReason_value = map[string]int32{
-		"FAILURE_REASON_UNSPECIFIED":        0,
-		"FAILURE_REASON_DECLINED":           1,
-		"FAILURE_REASON_INSUFFICIENT_FUNDS": 2,
-		"FAILURE_REASON_CARD_EXPIRED":       3,
-		"FAILURE_REASON_INVALID_CVV":        4,
-		"FAILURE_REASON_SCA_NOT_COMPLETED":  5,
-		"FAILURE_REASON_FRAUD_SUSPECTED":    6,
-		"FAILURE_REASON_NETWORK_ERROR":      7,
-		"FAILURE_REASON_PROVIDER_ERROR":     8,
+		"FAILURE_REASON_UNSPECIFIED":   0,
+		"FAILURE_REASON_DECLINED":      1,
+		"FAILURE_REASON_REVERSED":      2,
+		"FAILURE_REASON_AUTH_EXPIRED":  3,
+		"FAILURE_REASON_NETWORK_ERROR": 4,
 	}
 )
 
@@ -130,11 +221,11 @@ func (x FailureReason) String() string {
 }
 
 func (FailureReason) Descriptor() protoreflect.EnumDescriptor {
-	return file_domain_event_v1_payment_events_proto_enumTypes[1].Descriptor()
+	return file_domain_event_v1_payment_events_proto_enumTypes[3].Descriptor()
 }
 
 func (FailureReason) Type() protoreflect.EnumType {
-	return &file_domain_event_v1_payment_events_proto_enumTypes[1]
+	return &file_domain_event_v1_payment_events_proto_enumTypes[3]
 }
 
 func (x FailureReason) Number() protoreflect.EnumNumber {
@@ -143,120 +234,18 @@ func (x FailureReason) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use FailureReason.Descriptor instead.
 func (FailureReason) EnumDescriptor() ([]byte, []int) {
-	return file_domain_event_v1_payment_events_proto_rawDescGZIP(), []int{1}
-}
-
-// -----------------------------------------------------------------------------
-// Business dimensions
-// -----------------------------------------------------------------------------
-type PaymentKind int32
-
-const (
-	PaymentKind_PAYMENT_KIND_UNSPECIFIED  PaymentKind = 0
-	PaymentKind_PAYMENT_KIND_ONE_TIME     PaymentKind = 1 // one-off purchase
-	PaymentKind_PAYMENT_KIND_SUBSCRIPTION PaymentKind = 2 // recurring charge
-)
-
-// Enum value maps for PaymentKind.
-var (
-	PaymentKind_name = map[int32]string{
-		0: "PAYMENT_KIND_UNSPECIFIED",
-		1: "PAYMENT_KIND_ONE_TIME",
-		2: "PAYMENT_KIND_SUBSCRIPTION",
-	}
-	PaymentKind_value = map[string]int32{
-		"PAYMENT_KIND_UNSPECIFIED":  0,
-		"PAYMENT_KIND_ONE_TIME":     1,
-		"PAYMENT_KIND_SUBSCRIPTION": 2,
-	}
-)
-
-func (x PaymentKind) Enum() *PaymentKind {
-	p := new(PaymentKind)
-	*p = x
-	return p
-}
-
-func (x PaymentKind) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (PaymentKind) Descriptor() protoreflect.EnumDescriptor {
-	return file_domain_event_v1_payment_events_proto_enumTypes[2].Descriptor()
-}
-
-func (PaymentKind) Type() protoreflect.EnumType {
-	return &file_domain_event_v1_payment_events_proto_enumTypes[2]
-}
-
-func (x PaymentKind) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use PaymentKind.Descriptor instead.
-func (PaymentKind) EnumDescriptor() ([]byte, []int) {
-	return file_domain_event_v1_payment_events_proto_rawDescGZIP(), []int{2}
-}
-
-// Capture strategy (authorization vs immediate capture).
-type CaptureMode int32
-
-const (
-	CaptureMode_CAPTURE_MODE_UNSPECIFIED CaptureMode = 0
-	CaptureMode_CAPTURE_MODE_IMMEDIATE   CaptureMode = 1 // charge now (Created -> Paid)
-	CaptureMode_CAPTURE_MODE_MANUAL      CaptureMode = 2 // authorize now, capture later (hold)
-)
-
-// Enum value maps for CaptureMode.
-var (
-	CaptureMode_name = map[int32]string{
-		0: "CAPTURE_MODE_UNSPECIFIED",
-		1: "CAPTURE_MODE_IMMEDIATE",
-		2: "CAPTURE_MODE_MANUAL",
-	}
-	CaptureMode_value = map[string]int32{
-		"CAPTURE_MODE_UNSPECIFIED": 0,
-		"CAPTURE_MODE_IMMEDIATE":   1,
-		"CAPTURE_MODE_MANUAL":      2,
-	}
-)
-
-func (x CaptureMode) Enum() *CaptureMode {
-	p := new(CaptureMode)
-	*p = x
-	return p
-}
-
-func (x CaptureMode) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (CaptureMode) Descriptor() protoreflect.EnumDescriptor {
-	return file_domain_event_v1_payment_events_proto_enumTypes[3].Descriptor()
-}
-
-func (CaptureMode) Type() protoreflect.EnumType {
-	return &file_domain_event_v1_payment_events_proto_enumTypes[3]
-}
-
-func (x CaptureMode) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use CaptureMode.Descriptor instead.
-func (CaptureMode) EnumDescriptor() ([]byte, []int) {
 	return file_domain_event_v1_payment_events_proto_rawDescGZIP(), []int{3}
 }
 
-// -----------------------------------------------------------------------------
 // Minimal event metadata for idempotency and ordering.
-// -----------------------------------------------------------------------------
 type EventMeta struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	EventId       string                 `protobuf:"bytes,1,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`       // UUIDv7 — unique for each event
-	PaymentId     string                 `protobuf:"bytes,2,opt,name=payment_id,json=paymentId,proto3" json:"payment_id,omitempty"` // Aggregate ID (payment UUID)
-	Version       uint64                 `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`                     // Aggregate version AFTER applying this event
-	InvoiceId     string                 `protobuf:"bytes,4,opt,name=invoice_id,json=invoiceId,proto3" json:"invoice_id,omitempty"`
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	EventId   []byte                 `protobuf:"bytes,1,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`       // 16-byte UUID — unique event ID (usually UUIDv7)
+	PaymentId []byte                 `protobuf:"bytes,2,opt,name=payment_id,json=paymentId,proto3" json:"payment_id,omitempty"` // 16-byte UUID — aggregate/payment ID
+	Version   uint64                 `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`                     // aggregate version AFTER applying this event
+	InvoiceId []byte                 `protobuf:"bytes,4,opt,name=invoice_id,json=invoiceId,proto3" json:"invoice_id,omitempty"` // 16-byte UUID — related invoice/billing ID
+	// FieldMask allows specifying which fields are intentionally set.
+	FieldMask     *fieldmaskpb.FieldMask `protobuf:"bytes,100,opt,name=field_mask,json=fieldMask,proto3" json:"field_mask,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -291,18 +280,18 @@ func (*EventMeta) Descriptor() ([]byte, []int) {
 	return file_domain_event_v1_payment_events_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *EventMeta) GetEventId() string {
+func (x *EventMeta) GetEventId() []byte {
 	if x != nil {
 		return x.EventId
 	}
-	return ""
+	return nil
 }
 
-func (x *EventMeta) GetPaymentId() string {
+func (x *EventMeta) GetPaymentId() []byte {
 	if x != nil {
 		return x.PaymentId
 	}
-	return ""
+	return nil
 }
 
 func (x *EventMeta) GetVersion() uint64 {
@@ -312,22 +301,30 @@ func (x *EventMeta) GetVersion() uint64 {
 	return 0
 }
 
-func (x *EventMeta) GetInvoiceId() string {
+func (x *EventMeta) GetInvoiceId() []byte {
 	if x != nil {
 		return x.InvoiceId
 	}
-	return ""
+	return nil
 }
 
-// State after applying: CREATED
+func (x *EventMeta) GetFieldMask() *fieldmaskpb.FieldMask {
+	if x != nil {
+		return x.FieldMask
+	}
+	return nil
+}
+
 // Initializes the payment aggregate with billing linkage and amount.
+// Final state after applying: CREATED.
 type PaymentCreated struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Meta          *EventMeta             `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
-	InvoiceId     string                 `protobuf:"bytes,2,opt,name=invoice_id,json=invoiceId,proto3" json:"invoice_id,omitempty"`                                         // Reference to Billing
-	Amount        *money.Money           `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`                                                                // Total amount to charge
-	Kind          PaymentKind            `protobuf:"varint,4,opt,name=kind,proto3,enum=domain.event.v1.PaymentKind" json:"kind,omitempty"`                                  // Business semantics
-	CaptureMode   CaptureMode            `protobuf:"varint,5,opt,name=capture_mode,json=captureMode,proto3,enum=domain.event.v1.CaptureMode" json:"capture_mode,omitempty"` // Capture strategy (immediate/manual)
+	InvoiceId     []byte                 `protobuf:"bytes,2,opt,name=invoice_id,json=invoiceId,proto3" json:"invoice_id,omitempty"`                                         // 16-byte UUID — reference to billing
+	Amount        *money.Money           `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`                                                                // amount to charge
+	Kind          PaymentKind            `protobuf:"varint,4,opt,name=kind,proto3,enum=domain.event.v1.PaymentKind" json:"kind,omitempty"`                                  // business semantics
+	CaptureMode   CaptureMode            `protobuf:"varint,5,opt,name=capture_mode,json=captureMode,proto3,enum=domain.event.v1.CaptureMode" json:"capture_mode,omitempty"` // capture strategy
+	FieldMask     *fieldmaskpb.FieldMask `protobuf:"bytes,100,opt,name=field_mask,json=fieldMask,proto3" json:"field_mask,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -369,11 +366,11 @@ func (x *PaymentCreated) GetMeta() *EventMeta {
 	return nil
 }
 
-func (x *PaymentCreated) GetInvoiceId() string {
+func (x *PaymentCreated) GetInvoiceId() []byte {
 	if x != nil {
 		return x.InvoiceId
 	}
-	return ""
+	return nil
 }
 
 func (x *PaymentCreated) GetAmount() *money.Money {
@@ -397,11 +394,19 @@ func (x *PaymentCreated) GetCaptureMode() CaptureMode {
 	return CaptureMode_CAPTURE_MODE_UNSPECIFIED
 }
 
-// State after applying: WAITING_FOR_CONFIRMATION
-// Customer action required (3DS/SCA). Optional step in the flow.
+func (x *PaymentCreated) GetFieldMask() *fieldmaskpb.FieldMask {
+	if x != nil {
+		return x.FieldMask
+	}
+	return nil
+}
+
+// Optional step when SCA/3DS is required by provider/rules.
+// Final state: WAITING_FOR_CONFIRMATION.
 type PaymentWaitingForConfirmation struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Meta          *EventMeta             `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
+	FieldMask     *fieldmaskpb.FieldMask `protobuf:"bytes,100,opt,name=field_mask,json=fieldMask,proto3" json:"field_mask,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -443,12 +448,20 @@ func (x *PaymentWaitingForConfirmation) GetMeta() *EventMeta {
 	return nil
 }
 
-// State after applying: AUTHORIZED
-// Authorization hold placed on the customer’s payment method.
+func (x *PaymentWaitingForConfirmation) GetFieldMask() *fieldmaskpb.FieldMask {
+	if x != nil {
+		return x.FieldMask
+	}
+	return nil
+}
+
+// Authorization hold placed on customer's payment method.
+// Final state: AUTHORIZED (or remains AUTHORIZED if incremental).
 type PaymentAuthorized struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	Meta             *EventMeta             `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
-	AuthorizedAmount *money.Money           `protobuf:"bytes,2,opt,name=authorized_amount,json=authorizedAmount,proto3" json:"authorized_amount,omitempty"`
+	AuthorizedAmount *money.Money           `protobuf:"bytes,2,opt,name=authorized_amount,json=authorizedAmount,proto3" json:"authorized_amount,omitempty"` // incremental authorized amount
+	FieldMask        *fieldmaskpb.FieldMask `protobuf:"bytes,100,opt,name=field_mask,json=fieldMask,proto3" json:"field_mask,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -497,12 +510,20 @@ func (x *PaymentAuthorized) GetAuthorizedAmount() *money.Money {
 	return nil
 }
 
-// State after applying: PAID
+func (x *PaymentAuthorized) GetFieldMask() *fieldmaskpb.FieldMask {
+	if x != nil {
+		return x.FieldMask
+	}
+	return nil
+}
+
 // Funds captured; payment completed.
+// Final state: PAID (incremental capture allowed).
 type PaymentPaid struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	Meta           *EventMeta             `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
-	CapturedAmount *money.Money           `protobuf:"bytes,2,opt,name=captured_amount,json=capturedAmount,proto3" json:"captured_amount,omitempty"`
+	CapturedAmount *money.Money           `protobuf:"bytes,2,opt,name=captured_amount,json=capturedAmount,proto3" json:"captured_amount,omitempty"` // incremental captured amount
+	FieldMask      *fieldmaskpb.FieldMask `protobuf:"bytes,100,opt,name=field_mask,json=fieldMask,proto3" json:"field_mask,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -551,14 +572,22 @@ func (x *PaymentPaid) GetCapturedAmount() *money.Money {
 	return nil
 }
 
-// State after applying: REFUNDED
-// Refund succeeded (partial or full). Entered on the first successful refund.
+func (x *PaymentPaid) GetFieldMask() *fieldmaskpb.FieldMask {
+	if x != nil {
+		return x.FieldMask
+	}
+	return nil
+}
+
+// Refund succeeded (partial or full).
+// If `full` is true, final state becomes REFUNDED; else remains PAID.
 type PaymentRefunded struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Meta          *EventMeta             `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
-	RefundAmount  *money.Money           `protobuf:"bytes,2,opt,name=refund_amount,json=refundAmount,proto3" json:"refund_amount,omitempty"`    // This refund operation
-	TotalRefunded *money.Money           `protobuf:"bytes,3,opt,name=total_refunded,json=totalRefunded,proto3" json:"total_refunded,omitempty"` // Cumulative after this operation
-	Full          bool                   `protobuf:"varint,4,opt,name=full,proto3" json:"full,omitempty"`                                       // total_refunded == captured
+	RefundAmount  *money.Money           `protobuf:"bytes,2,opt,name=refund_amount,json=refundAmount,proto3" json:"refund_amount,omitempty"`    // amount for this refund op
+	TotalRefunded *money.Money           `protobuf:"bytes,3,opt,name=total_refunded,json=totalRefunded,proto3" json:"total_refunded,omitempty"` // cumulative total refunded after this op
+	Full          bool                   `protobuf:"varint,4,opt,name=full,proto3" json:"full,omitempty"`                                       // total_refunded == captured total
+	FieldMask     *fieldmaskpb.FieldMask `protobuf:"bytes,100,opt,name=field_mask,json=fieldMask,proto3" json:"field_mask,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -621,12 +650,19 @@ func (x *PaymentRefunded) GetFull() bool {
 	return false
 }
 
-// State after applying: stays PAID (no state change)
-// Refund attempt failed — the aggregate remains in PAID.
+func (x *PaymentRefunded) GetFieldMask() *fieldmaskpb.FieldMask {
+	if x != nil {
+		return x.FieldMask
+	}
+	return nil
+}
+
+// Refund attempt failed (no state change, remains PAID).
 type PaymentRefundFailed struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Meta          *EventMeta             `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
 	Reason        FailureReason          `protobuf:"varint,2,opt,name=reason,proto3,enum=domain.event.v1.FailureReason" json:"reason,omitempty"`
+	FieldMask     *fieldmaskpb.FieldMask `protobuf:"bytes,100,opt,name=field_mask,json=fieldMask,proto3" json:"field_mask,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -675,12 +711,20 @@ func (x *PaymentRefundFailed) GetReason() FailureReason {
 	return FailureReason_FAILURE_REASON_UNSPECIFIED
 }
 
-// State after applying: CANCELED
+func (x *PaymentRefundFailed) GetFieldMask() *fieldmaskpb.FieldMask {
+	if x != nil {
+		return x.FieldMask
+	}
+	return nil
+}
+
 // Payment canceled by user/system (includes void of authorization).
+// Final state: CANCELED.
 type PaymentCanceled struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Meta          *EventMeta             `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
 	Reason        CancelReason           `protobuf:"varint,2,opt,name=reason,proto3,enum=domain.event.v1.CancelReason" json:"reason,omitempty"`
+	FieldMask     *fieldmaskpb.FieldMask `protobuf:"bytes,100,opt,name=field_mask,json=fieldMask,proto3" json:"field_mask,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -729,12 +773,21 @@ func (x *PaymentCanceled) GetReason() CancelReason {
 	return CancelReason_CANCEL_REASON_UNSPECIFIED
 }
 
-// State after applying: FAILED
-// Payment failed (declined, reverse, or authorization expired).
+func (x *PaymentCanceled) GetFieldMask() *fieldmaskpb.FieldMask {
+	if x != nil {
+		return x.FieldMask
+	}
+	return nil
+}
+
+// Payment failed (declined, reversed, or authorization expired).
+// Final state: FAILED.
 type PaymentFailed struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Meta          *EventMeta             `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
 	Reason        FailureReason          `protobuf:"varint,2,opt,name=reason,proto3,enum=domain.event.v1.FailureReason" json:"reason,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"` // optional provider/service text
+	FieldMask     *fieldmaskpb.FieldMask `protobuf:"bytes,100,opt,name=field_mask,json=fieldMask,proto3" json:"field_mask,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -783,71 +836,100 @@ func (x *PaymentFailed) GetReason() FailureReason {
 	return FailureReason_FAILURE_REASON_UNSPECIFIED
 }
 
+func (x *PaymentFailed) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *PaymentFailed) GetFieldMask() *fieldmaskpb.FieldMask {
+	if x != nil {
+		return x.FieldMask
+	}
+	return nil
+}
+
 var File_domain_event_v1_payment_events_proto protoreflect.FileDescriptor
 
 const file_domain_event_v1_payment_events_proto_rawDesc = "" +
 	"\n" +
-	"$domain/event/v1/payment_events.proto\x12\x0fdomain.event.v1\x1a\x17google/type/money.proto\"~\n" +
+	"$domain/event/v1/payment_events.proto\x12\x0fdomain.event.v1\x1a\x17google/type/money.proto\x1a google/protobuf/field_mask.proto\"\xb9\x01\n" +
 	"\tEventMeta\x12\x19\n" +
-	"\bevent_id\x18\x01 \x01(\tR\aeventId\x12\x1d\n" +
+	"\bevent_id\x18\x01 \x01(\fR\aeventId\x12\x1d\n" +
 	"\n" +
-	"payment_id\x18\x02 \x01(\tR\tpaymentId\x12\x18\n" +
+	"payment_id\x18\x02 \x01(\fR\tpaymentId\x12\x18\n" +
 	"\aversion\x18\x03 \x01(\x04R\aversion\x12\x1d\n" +
 	"\n" +
-	"invoice_id\x18\x04 \x01(\tR\tinvoiceId\"\xfe\x01\n" +
+	"invoice_id\x18\x04 \x01(\fR\tinvoiceId\x129\n" +
+	"\n" +
+	"field_mask\x18d \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask\"\xb9\x02\n" +
 	"\x0ePaymentCreated\x12.\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1a.domain.event.v1.EventMetaR\x04meta\x12\x1d\n" +
 	"\n" +
-	"invoice_id\x18\x02 \x01(\tR\tinvoiceId\x12*\n" +
+	"invoice_id\x18\x02 \x01(\fR\tinvoiceId\x12*\n" +
 	"\x06amount\x18\x03 \x01(\v2\x12.google.type.MoneyR\x06amount\x120\n" +
 	"\x04kind\x18\x04 \x01(\x0e2\x1c.domain.event.v1.PaymentKindR\x04kind\x12?\n" +
-	"\fcapture_mode\x18\x05 \x01(\x0e2\x1c.domain.event.v1.CaptureModeR\vcaptureMode\"O\n" +
+	"\fcapture_mode\x18\x05 \x01(\x0e2\x1c.domain.event.v1.CaptureModeR\vcaptureMode\x129\n" +
+	"\n" +
+	"field_mask\x18d \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask\"\x8a\x01\n" +
 	"\x1dPaymentWaitingForConfirmation\x12.\n" +
-	"\x04meta\x18\x01 \x01(\v2\x1a.domain.event.v1.EventMetaR\x04meta\"\x84\x01\n" +
+	"\x04meta\x18\x01 \x01(\v2\x1a.domain.event.v1.EventMetaR\x04meta\x129\n" +
+	"\n" +
+	"field_mask\x18d \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask\"\xbf\x01\n" +
 	"\x11PaymentAuthorized\x12.\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1a.domain.event.v1.EventMetaR\x04meta\x12?\n" +
-	"\x11authorized_amount\x18\x02 \x01(\v2\x12.google.type.MoneyR\x10authorizedAmount\"z\n" +
+	"\x11authorized_amount\x18\x02 \x01(\v2\x12.google.type.MoneyR\x10authorizedAmount\x129\n" +
+	"\n" +
+	"field_mask\x18d \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask\"\xb5\x01\n" +
 	"\vPaymentPaid\x12.\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1a.domain.event.v1.EventMetaR\x04meta\x12;\n" +
-	"\x0fcaptured_amount\x18\x02 \x01(\v2\x12.google.type.MoneyR\x0ecapturedAmount\"\xc9\x01\n" +
+	"\x0fcaptured_amount\x18\x02 \x01(\v2\x12.google.type.MoneyR\x0ecapturedAmount\x129\n" +
+	"\n" +
+	"field_mask\x18d \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask\"\x84\x02\n" +
 	"\x0fPaymentRefunded\x12.\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1a.domain.event.v1.EventMetaR\x04meta\x127\n" +
 	"\rrefund_amount\x18\x02 \x01(\v2\x12.google.type.MoneyR\frefundAmount\x129\n" +
 	"\x0etotal_refunded\x18\x03 \x01(\v2\x12.google.type.MoneyR\rtotalRefunded\x12\x12\n" +
-	"\x04full\x18\x04 \x01(\bR\x04full\"}\n" +
+	"\x04full\x18\x04 \x01(\bR\x04full\x129\n" +
+	"\n" +
+	"field_mask\x18d \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask\"\xb8\x01\n" +
 	"\x13PaymentRefundFailed\x12.\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1a.domain.event.v1.EventMetaR\x04meta\x126\n" +
-	"\x06reason\x18\x02 \x01(\x0e2\x1e.domain.event.v1.FailureReasonR\x06reason\"x\n" +
+	"\x06reason\x18\x02 \x01(\x0e2\x1e.domain.event.v1.FailureReasonR\x06reason\x129\n" +
+	"\n" +
+	"field_mask\x18d \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask\"\xb3\x01\n" +
 	"\x0fPaymentCanceled\x12.\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1a.domain.event.v1.EventMetaR\x04meta\x125\n" +
-	"\x06reason\x18\x02 \x01(\x0e2\x1d.domain.event.v1.CancelReasonR\x06reason\"w\n" +
+	"\x06reason\x18\x02 \x01(\x0e2\x1d.domain.event.v1.CancelReasonR\x06reason\x129\n" +
+	"\n" +
+	"field_mask\x18d \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask\"\xcc\x01\n" +
 	"\rPaymentFailed\x12.\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1a.domain.event.v1.EventMetaR\x04meta\x126\n" +
-	"\x06reason\x18\x02 \x01(\x0e2\x1e.domain.event.v1.FailureReasonR\x06reason*\x99\x01\n" +
+	"\x06reason\x18\x02 \x01(\x0e2\x1e.domain.event.v1.FailureReasonR\x06reason\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x129\n" +
+	"\n" +
+	"field_mask\x18d \x01(\v2\x1a.google.protobuf.FieldMaskR\tfieldMask*b\n" +
+	"\vPaymentKind\x12\x1c\n" +
+	"\x18PAYMENT_KIND_UNSPECIFIED\x10\x00\x12\x19\n" +
+	"\x15PAYMENT_KIND_ONE_TIME\x10\x01\x12\x1a\n" +
+	"\x16PAYMENT_KIND_RECURRING\x10\x02*`\n" +
+	"\vCaptureMode\x12\x1c\n" +
+	"\x18CAPTURE_MODE_UNSPECIFIED\x10\x00\x12\x1a\n" +
+	"\x16CAPTURE_MODE_IMMEDIATE\x10\x01\x12\x17\n" +
+	"\x13CAPTURE_MODE_MANUAL\x10\x02*\x99\x01\n" +
 	"\fCancelReason\x12\x1d\n" +
 	"\x19CANCEL_REASON_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12CANCEL_REASON_USER\x10\x01\x12\x18\n" +
 	"\x14CANCEL_REASON_SYSTEM\x10\x02\x12\x1b\n" +
 	"\x17CANCEL_REASON_AUTH_VOID\x10\x03\x12\x1b\n" +
-	"\x17CANCEL_REASON_DUPLICATE\x10\x04*\xc3\x02\n" +
+	"\x17CANCEL_REASON_DUPLICATE\x10\x04*\xac\x01\n" +
 	"\rFailureReason\x12\x1e\n" +
 	"\x1aFAILURE_REASON_UNSPECIFIED\x10\x00\x12\x1b\n" +
-	"\x17FAILURE_REASON_DECLINED\x10\x01\x12%\n" +
-	"!FAILURE_REASON_INSUFFICIENT_FUNDS\x10\x02\x12\x1f\n" +
-	"\x1bFAILURE_REASON_CARD_EXPIRED\x10\x03\x12\x1e\n" +
-	"\x1aFAILURE_REASON_INVALID_CVV\x10\x04\x12$\n" +
-	" FAILURE_REASON_SCA_NOT_COMPLETED\x10\x05\x12\"\n" +
-	"\x1eFAILURE_REASON_FRAUD_SUSPECTED\x10\x06\x12 \n" +
-	"\x1cFAILURE_REASON_NETWORK_ERROR\x10\a\x12!\n" +
-	"\x1dFAILURE_REASON_PROVIDER_ERROR\x10\b*e\n" +
-	"\vPaymentKind\x12\x1c\n" +
-	"\x18PAYMENT_KIND_UNSPECIFIED\x10\x00\x12\x19\n" +
-	"\x15PAYMENT_KIND_ONE_TIME\x10\x01\x12\x1d\n" +
-	"\x19PAYMENT_KIND_SUBSCRIPTION\x10\x02*`\n" +
-	"\vCaptureMode\x12\x1c\n" +
-	"\x18CAPTURE_MODE_UNSPECIFIED\x10\x00\x12\x1a\n" +
-	"\x16CAPTURE_MODE_IMMEDIATE\x10\x01\x12\x17\n" +
-	"\x13CAPTURE_MODE_MANUAL\x10\x02B\xd3\x01\n" +
+	"\x17FAILURE_REASON_DECLINED\x10\x01\x12\x1b\n" +
+	"\x17FAILURE_REASON_REVERSED\x10\x02\x12\x1f\n" +
+	"\x1bFAILURE_REASON_AUTH_EXPIRED\x10\x03\x12 \n" +
+	"\x1cFAILURE_REASON_NETWORK_ERROR\x10\x04B\xd3\x01\n" +
 	"\x13com.domain.event.v1B\x12PaymentEventsProtoP\x01ZJgithub.com/shortlink-org/billing/payments/internal/domain/event/v1;eventv1\xa2\x02\x03DEX\xaa\x02\x0fDomain.Event.V1\xca\x02\x0fDomain\\Event\\V1\xe2\x02\x1bDomain\\Event\\V1\\GPBMetadata\xea\x02\x11Domain::Event::V1b\x06proto3"
 
 var (
@@ -865,10 +947,10 @@ func file_domain_event_v1_payment_events_proto_rawDescGZIP() []byte {
 var file_domain_event_v1_payment_events_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
 var file_domain_event_v1_payment_events_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_domain_event_v1_payment_events_proto_goTypes = []any{
-	(CancelReason)(0),                     // 0: domain.event.v1.CancelReason
-	(FailureReason)(0),                    // 1: domain.event.v1.FailureReason
-	(PaymentKind)(0),                      // 2: domain.event.v1.PaymentKind
-	(CaptureMode)(0),                      // 3: domain.event.v1.CaptureMode
+	(PaymentKind)(0),                      // 0: domain.event.v1.PaymentKind
+	(CaptureMode)(0),                      // 1: domain.event.v1.CaptureMode
+	(CancelReason)(0),                     // 2: domain.event.v1.CancelReason
+	(FailureReason)(0),                    // 3: domain.event.v1.FailureReason
 	(*EventMeta)(nil),                     // 4: domain.event.v1.EventMeta
 	(*PaymentCreated)(nil),                // 5: domain.event.v1.PaymentCreated
 	(*PaymentWaitingForConfirmation)(nil), // 6: domain.event.v1.PaymentWaitingForConfirmation
@@ -878,32 +960,42 @@ var file_domain_event_v1_payment_events_proto_goTypes = []any{
 	(*PaymentRefundFailed)(nil),           // 10: domain.event.v1.PaymentRefundFailed
 	(*PaymentCanceled)(nil),               // 11: domain.event.v1.PaymentCanceled
 	(*PaymentFailed)(nil),                 // 12: domain.event.v1.PaymentFailed
-	(*money.Money)(nil),                   // 13: google.type.Money
+	(*fieldmaskpb.FieldMask)(nil),         // 13: google.protobuf.FieldMask
+	(*money.Money)(nil),                   // 14: google.type.Money
 }
 var file_domain_event_v1_payment_events_proto_depIdxs = []int32{
-	4,  // 0: domain.event.v1.PaymentCreated.meta:type_name -> domain.event.v1.EventMeta
-	13, // 1: domain.event.v1.PaymentCreated.amount:type_name -> google.type.Money
-	2,  // 2: domain.event.v1.PaymentCreated.kind:type_name -> domain.event.v1.PaymentKind
-	3,  // 3: domain.event.v1.PaymentCreated.capture_mode:type_name -> domain.event.v1.CaptureMode
-	4,  // 4: domain.event.v1.PaymentWaitingForConfirmation.meta:type_name -> domain.event.v1.EventMeta
-	4,  // 5: domain.event.v1.PaymentAuthorized.meta:type_name -> domain.event.v1.EventMeta
-	13, // 6: domain.event.v1.PaymentAuthorized.authorized_amount:type_name -> google.type.Money
-	4,  // 7: domain.event.v1.PaymentPaid.meta:type_name -> domain.event.v1.EventMeta
-	13, // 8: domain.event.v1.PaymentPaid.captured_amount:type_name -> google.type.Money
-	4,  // 9: domain.event.v1.PaymentRefunded.meta:type_name -> domain.event.v1.EventMeta
-	13, // 10: domain.event.v1.PaymentRefunded.refund_amount:type_name -> google.type.Money
-	13, // 11: domain.event.v1.PaymentRefunded.total_refunded:type_name -> google.type.Money
-	4,  // 12: domain.event.v1.PaymentRefundFailed.meta:type_name -> domain.event.v1.EventMeta
-	1,  // 13: domain.event.v1.PaymentRefundFailed.reason:type_name -> domain.event.v1.FailureReason
-	4,  // 14: domain.event.v1.PaymentCanceled.meta:type_name -> domain.event.v1.EventMeta
-	0,  // 15: domain.event.v1.PaymentCanceled.reason:type_name -> domain.event.v1.CancelReason
-	4,  // 16: domain.event.v1.PaymentFailed.meta:type_name -> domain.event.v1.EventMeta
-	1,  // 17: domain.event.v1.PaymentFailed.reason:type_name -> domain.event.v1.FailureReason
-	18, // [18:18] is the sub-list for method output_type
-	18, // [18:18] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	13, // 0: domain.event.v1.EventMeta.field_mask:type_name -> google.protobuf.FieldMask
+	4,  // 1: domain.event.v1.PaymentCreated.meta:type_name -> domain.event.v1.EventMeta
+	14, // 2: domain.event.v1.PaymentCreated.amount:type_name -> google.type.Money
+	0,  // 3: domain.event.v1.PaymentCreated.kind:type_name -> domain.event.v1.PaymentKind
+	1,  // 4: domain.event.v1.PaymentCreated.capture_mode:type_name -> domain.event.v1.CaptureMode
+	13, // 5: domain.event.v1.PaymentCreated.field_mask:type_name -> google.protobuf.FieldMask
+	4,  // 6: domain.event.v1.PaymentWaitingForConfirmation.meta:type_name -> domain.event.v1.EventMeta
+	13, // 7: domain.event.v1.PaymentWaitingForConfirmation.field_mask:type_name -> google.protobuf.FieldMask
+	4,  // 8: domain.event.v1.PaymentAuthorized.meta:type_name -> domain.event.v1.EventMeta
+	14, // 9: domain.event.v1.PaymentAuthorized.authorized_amount:type_name -> google.type.Money
+	13, // 10: domain.event.v1.PaymentAuthorized.field_mask:type_name -> google.protobuf.FieldMask
+	4,  // 11: domain.event.v1.PaymentPaid.meta:type_name -> domain.event.v1.EventMeta
+	14, // 12: domain.event.v1.PaymentPaid.captured_amount:type_name -> google.type.Money
+	13, // 13: domain.event.v1.PaymentPaid.field_mask:type_name -> google.protobuf.FieldMask
+	4,  // 14: domain.event.v1.PaymentRefunded.meta:type_name -> domain.event.v1.EventMeta
+	14, // 15: domain.event.v1.PaymentRefunded.refund_amount:type_name -> google.type.Money
+	14, // 16: domain.event.v1.PaymentRefunded.total_refunded:type_name -> google.type.Money
+	13, // 17: domain.event.v1.PaymentRefunded.field_mask:type_name -> google.protobuf.FieldMask
+	4,  // 18: domain.event.v1.PaymentRefundFailed.meta:type_name -> domain.event.v1.EventMeta
+	3,  // 19: domain.event.v1.PaymentRefundFailed.reason:type_name -> domain.event.v1.FailureReason
+	13, // 20: domain.event.v1.PaymentRefundFailed.field_mask:type_name -> google.protobuf.FieldMask
+	4,  // 21: domain.event.v1.PaymentCanceled.meta:type_name -> domain.event.v1.EventMeta
+	2,  // 22: domain.event.v1.PaymentCanceled.reason:type_name -> domain.event.v1.CancelReason
+	13, // 23: domain.event.v1.PaymentCanceled.field_mask:type_name -> google.protobuf.FieldMask
+	4,  // 24: domain.event.v1.PaymentFailed.meta:type_name -> domain.event.v1.EventMeta
+	3,  // 25: domain.event.v1.PaymentFailed.reason:type_name -> domain.event.v1.FailureReason
+	13, // 26: domain.event.v1.PaymentFailed.field_mask:type_name -> google.protobuf.FieldMask
+	27, // [27:27] is the sub-list for method output_type
+	27, // [27:27] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_domain_event_v1_payment_events_proto_init() }

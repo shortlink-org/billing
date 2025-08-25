@@ -20,8 +20,12 @@ func (p *Payment) RequireSCA(ctx context.Context) error {
 	if err := p.guard.Trigger(ctx, fsm.EventSCARequired); err != nil {
 		return fmt.Errorf("%w: %s", ErrInvalidTransition, err)
 	}
-	ev := &eventv1.PaymentWaitingForConfirmation{Meta: p.metaNext()}
-	p.apply(ev)
+	ev := &eventv1.PaymentWaitingForConfirmation{
+		Meta: p.metaNext(),
+	}
+	if err := p.apply(ev); err != nil {
+		return err
+	}
 	p.record(ev)
 	return nil
 }
@@ -45,7 +49,7 @@ func (p *Payment) Authorize(ctx context.Context, amt *money.Money) error {
 		return ErrInvalidTransition
 	}
 
-	// Validate next authorized ≤ amount (no mutation here)
+	// Validate next authorized ≤ amount
 	cur := ledger.Clone(p.Ledger.Authorized)
 	if cur == nil {
 		cur = ledger.Zero(p.Ledger.Amount.GetCurrencyCode())
@@ -58,12 +62,14 @@ func (p *Payment) Authorize(ctx context.Context, amt *money.Money) error {
 		return ledger.ErrAuthorizeExceeds
 	}
 
-	// Emit incremental event; apply() will accumulate.
+	// Emit incremental event
 	ev := &eventv1.PaymentAuthorized{
 		Meta:             p.metaNext(),
 		AuthorizedAmount: ledger.Clone(amt),
 	}
-	p.apply(ev)
+	if err := p.apply(ev); err != nil {
+		return err
+	}
 	p.record(ev)
 	return nil
 }
@@ -80,7 +86,7 @@ func (p *Payment) Confirm(ctx context.Context, amt *money.Money) error {
 		return fmt.Errorf("%w: %s", ErrInvalidTransition, err)
 	}
 
-	// Same validation as Authorize (no mutation)
+	// Same validation as Authorize
 	cur := ledger.Clone(p.Ledger.Authorized)
 	if cur == nil {
 		cur = ledger.Zero(p.Ledger.Amount.GetCurrencyCode())
@@ -97,23 +103,30 @@ func (p *Payment) Confirm(ctx context.Context, amt *money.Money) error {
 		Meta:             p.metaNext(),
 		AuthorizedAmount: ledger.Clone(amt),
 	}
-	p.apply(ev)
+	if err := p.apply(ev); err != nil {
+		return err
+	}
 	p.record(ev)
 	return nil
 }
 
-// Capture: AUTHORIZED|CREATED -> PAID (Policy may forbid CREATED immediate)
+// Capture:
+//   - CREATED    -> PAID        (via FSM) if policy allows immediate capture
+//   - AUTHORIZED -> PAID        (via FSM)
+//   - PAID       -> PAID        (no FSM, incremental capture)
+//     Validation: next captured ≤ limit (limit = Authorized if present else Amount)
 func (p *Payment) Capture(ctx context.Context, amt *money.Money) error {
 	if p.isTerminal() {
 		return ErrTerminalState
 	}
+
 	// Policy gate for immediate capture from CREATED
 	if p.state == flowv1.PaymentFlow_PAYMENT_FLOW_CREATED &&
 		!p.policy.AllowImmediateCapture(p.kind, p.captureMode) {
 		return ErrPolicyCaptureMode
 	}
 
-	// Validate next captured ≤ limit (no mutation)
+	// Validate next captured ≤ limit
 	cur := ledger.Clone(p.Ledger.Captured)
 	if cur == nil {
 		cur = ledger.Zero(p.Ledger.Amount.GetCurrencyCode())
@@ -130,9 +143,20 @@ func (p *Payment) Capture(ctx context.Context, amt *money.Money) error {
 		return ledger.ErrCaptureExceedsLimit
 	}
 
-	// FSM trigger per current state
-	if err := p.guard.Trigger(ctx, fsm.EventCapture); err != nil {
-		return fmt.Errorf("%w: %s", ErrInvalidTransition, err)
+	// FSM trigger depends on current state
+	switch p.state {
+	case flowv1.PaymentFlow_PAYMENT_FLOW_CREATED:
+		if err := p.guard.Trigger(ctx, fsm.EventCapture); err != nil {
+			return fmt.Errorf("%w: %s", ErrInvalidTransition, err)
+		}
+	case flowv1.PaymentFlow_PAYMENT_FLOW_AUTHORIZED:
+		if err := p.guard.Trigger(ctx, fsm.EventCapture); err != nil {
+			return fmt.Errorf("%w: %s", ErrInvalidTransition, err)
+		}
+	case flowv1.PaymentFlow_PAYMENT_FLOW_PAID:
+		// incremental capture — keep state PAID; no FSM trigger
+	default:
+		return ErrInvalidTransition
 	}
 
 	// Emit incremental captured
@@ -140,13 +164,14 @@ func (p *Payment) Capture(ctx context.Context, amt *money.Money) error {
 		Meta:           p.metaNext(),
 		CapturedAmount: ledger.Clone(amt),
 	}
-	p.apply(ev)
+	if err := p.apply(ev); err != nil {
+		return err
+	}
 	p.record(ev)
 	return nil
 }
 
 // Refund: partial -> stay PAID; full -> FSM refund_full -> REFUNDED.
-// Validate next total_refunded ≤ captured (no mutation).
 func (p *Payment) Refund(ctx context.Context, amt *money.Money) (bool, error) {
 	if p.isTerminal() {
 		return false, ErrTerminalState
@@ -176,10 +201,12 @@ func (p *Payment) Refund(ctx context.Context, amt *money.Money) (bool, error) {
 	ev := &eventv1.PaymentRefunded{
 		Meta:          p.metaNext(),
 		RefundAmount:  ledger.Clone(amt),
-		TotalRefunded: ledger.Clone(next), // carry the new total for deterministic rehydration
+		TotalRefunded: ledger.Clone(next), // carry new total for deterministic rehydration
 		Full:          full,
 	}
-	p.apply(ev)
+	if err := p.apply(ev); err != nil {
+		return false, err
+	}
 	p.record(ev)
 	return full, nil
 }
@@ -191,7 +218,7 @@ func (p *Payment) RefundFailed(ctx context.Context, reason eventv1.FailureReason
 		Meta:   p.metaNext(),
 		Reason: reason,
 	}
-	p.apply(ev)
+	_ = p.apply(ev) // safe: only version bump; ignore error to keep handler idempotent
 	p.record(ev)
 }
 
@@ -203,8 +230,13 @@ func (p *Payment) Cancel(ctx context.Context, reason eventv1.CancelReason) error
 	if err := p.guard.Trigger(ctx, fsm.EventCancel); err != nil {
 		return fmt.Errorf("%w: %s", ErrInvalidTransition, err)
 	}
-	ev := &eventv1.PaymentCanceled{Meta: p.metaNext(), Reason: reason}
-	p.apply(ev)
+	ev := &eventv1.PaymentCanceled{
+		Meta:   p.metaNext(),
+		Reason: reason,
+	}
+	if err := p.apply(ev); err != nil {
+		return err
+	}
 	p.record(ev)
 	return nil
 }
@@ -217,8 +249,13 @@ func (p *Payment) Fail(ctx context.Context, reason eventv1.FailureReason) error 
 	if err := p.guard.Trigger(ctx, fsm.EventFail); err != nil {
 		return fmt.Errorf("%w: %s", ErrInvalidTransition, err)
 	}
-	ev := &eventv1.PaymentFailed{Meta: p.metaNext(), Reason: reason}
-	p.apply(ev)
+	ev := &eventv1.PaymentFailed{
+		Meta:   p.metaNext(),
+		Reason: reason,
+	}
+	if err := p.apply(ev); err != nil {
+		return err
+	}
 	p.record(ev)
 	return nil
 }

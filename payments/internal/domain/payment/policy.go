@@ -1,23 +1,24 @@
+// internal/domain/payment/policy.go
 package payment
 
 import (
 	eventv1 "github.com/shortlink-org/billing/payments/internal/domain/event/v1"
 )
 
-// Policy определяет бизнес-правила, не зависящие от состояния процесса.
+// Policy defines business rules independent from process state.
 type Policy interface {
-	// Разрешена ли мгновенная оплата из CREATED (без AUTHORIZED).
+	// AllowImmediateCapture indicates whether capture is allowed directly from CREATED (without auth).
 	AllowImmediateCapture(kind eventv1.PaymentKind, mode eventv1.CaptureMode) bool
-	// Поддерживается ли валюта.
+	// IsCurrencySupported tells if currency is allowed.
 	IsCurrencySupported(code string) bool
-	// Нужна ли SCA при создании (можно расширять по сумме/стране и т.п.).
+	// ShouldRequireSCA allows forcing SCA at creation time (can be extended by amount/region/etc).
 	ShouldRequireSCA(kind eventv1.PaymentKind, mode eventv1.CaptureMode) bool
 }
 
-// StaticPolicy — простой вариант (по умолчанию).
+// StaticPolicy is a simple default implementation.
 type StaticPolicy struct {
-	SupportedCurrencies map[string]struct{} // nil => разрешить все
-	ForceSCA            bool                // если true — всегда требовать SCA
+	SupportedCurrencies map[string]struct{} // nil => allow all
+	ForceSCA            bool                // if true — always require SCA
 }
 
 func (p *StaticPolicy) AllowImmediateCapture(_ eventv1.PaymentKind, mode eventv1.CaptureMode) bool {

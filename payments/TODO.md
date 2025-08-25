@@ -1,7 +1,6 @@
 - [ ] Specification pattern
 - [ ] money package?
 - [ ] eventsourcing package?
-- [ ] BDD tests
 - [ ] UUID for id
 - [ ] Provider Stripe
 - [ ] Repository InMemory
