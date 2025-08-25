@@ -1,0 +1,11 @@
+with-expecter: true
+dir: "internal/mocks"
+mockname: "Mock{{.InterfaceName}}"
+outpkg: mocks
+packages:
+  github.com/shortlink-org/billing/payments/internal/application/payments/repository:
+    interfaces:
+      PaymentRepository:
+  github.com/shortlink-org/billing/payments/internal/application/payments/ports:
+    interfaces:
+      PaymentProvider:
