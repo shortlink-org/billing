@@ -219,3 +219,39 @@ func Sub(a, b *money.Money) (*money.Money, error) {
 	diff := an.Sub(bn)
 	return scaledToMoney(a.GetCurrencyCode(), diff)
 }
+
+// AmountToMinorUnits converts Money to integer minor units (e.g., cents).
+// It validates currency scale and guarantees exact conversion (no rounding).
+func AmountToMinorUnits(m *money.Money) (int64, error) {
+	if m == nil {
+		return 0, ErrNilMoney
+	}
+	if err := validateScale(m); err != nil {
+		return 0, err
+	}
+	exp, err := ScaleOf(m.GetCurrencyCode())
+	if err != nil {
+		return 0, err
+	}
+	nanos, err := moneyToScaled(m) // integer nanounits (1e-9)
+	if err != nil {
+		return 0, err
+	}
+	// minor = nanos / 10^(9-exp)
+	div := decimal.NewFromInt(1).Shift(int32(9 - exp))
+	minor := nanos.Div(div)
+	if !minor.IsInteger() {
+		return 0, ErrInvalidScale // should not happen due to validateScale
+	}
+	return minor.IntPart(), nil
+}
+
+// MinorUnitsToAmount converts integer minor units (e.g., cents) to Money.
+// The result respects the ISO-4217 scale (nanos step = 10^(9-exp)).
+func MinorUnitsToAmount(currency string, v int64) *money.Money {
+	exp, _ := ScaleOf(currency)
+	// nanos = minor * 10^(9-exp)
+	nanos := decimal.NewFromInt(v).Mul(decimal.NewFromInt(1).Shift(int32(9 - exp)))
+	res, _ := scaledToMoney(currency, nanos) // nanos is integer → no error
+	return res
+}

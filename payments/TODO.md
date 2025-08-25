@@ -1,7 +1,6 @@
 - [ ] Specification pattern
 - [ ] money package?
 - [ ] eventsourcing package?
-- [ ] UUID for id
 - [ ] Provider Stripe
 - [ ] Repository InMemory
 - [ ] Kafka integration
