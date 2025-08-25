@@ -48,6 +48,23 @@ type CreatePaymentOut struct {
 	Captured   *money.Money // set if provider captured (succeeded)
 }
 
+type RefundPaymentIn struct {
+	PaymentID  uuid.UUID
+	ProviderID string // e.g., Stripe PaymentIntent ID
+	Amount     *money.Money
+	Currency   string // ISO-4217 (dup for convenience)
+	Reason     string
+	Metadata   map[string]string
+}
+
+type RefundPaymentOut struct {
+	Provider   Provider
+	RefundID   string // e.g., Stripe Refund ID
+	Status     ProviderStatus
+	Amount     *money.Money // actual refunded amount from provider
+}
+
 type PaymentProvider interface {
 	CreatePayment(ctx context.Context, in CreatePaymentIn) (CreatePaymentOut, error)
+	RefundPayment(ctx context.Context, in RefundPaymentIn) (RefundPaymentOut, error)
 }
