@@ -11,4 +11,5 @@ var (
 	ErrInvariantViolation  = errors.New("payment: invariants violated")
 	ErrBadPaymentID        = errors.New("payment: invalid meta.payment_id bytes")
 	ErrBadInvoiceID        = errors.New("payment: invalid invoice_id bytes")
+	ErrVersionConflict     = errors.New("payment: version conflict")
 )

@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/samber/lo"
 
-	"github.com/google/uuid"
 	"github.com/shortlink-org/billing/payments/internal/application/payments/ports"
+	"github.com/shortlink-org/billing/payments/internal/application/payments/repository"
+	"github.com/shortlink-org/billing/payments/internal/application/payments/repository/memory"
 	eventv1 "github.com/shortlink-org/billing/payments/internal/domain/event/v1"
 	flowv1 "github.com/shortlink-org/billing/payments/internal/domain/flow/v1"
 	"github.com/shortlink-org/billing/payments/internal/domain/payment"
@@ -16,8 +18,9 @@ import (
 	"google.golang.org/genproto/googleapis/type/money"
 )
 
+// Command contains input data for creating a payment.
 type Command struct {
-	PaymentID   uuid.UUID // uuid.Nil → генерируем v7 в домене
+	PaymentID   uuid.UUID // uuid.Nil → generate v7 in domain
 	InvoiceID   uuid.UUID
 	Amount      *money.Money
 	Kind        eventv1.PaymentKind
@@ -27,6 +30,7 @@ type Command struct {
 	ReturnURL   string
 }
 
+// Result is returned after successful payment creation.
 type Result struct {
 	ID           uuid.UUID
 	State        flowv1.PaymentFlow
@@ -36,26 +40,25 @@ type Result struct {
 	ClientSecret string
 }
 
+// Handler orchestrates payment creation.
 type Handler struct {
-	Repo     repository // your domain repository interface
+	Repo     repository.PaymentRepository
 	Provider ports.PaymentProvider
 }
 
 func (h *Handler) Handle(ctx context.Context, cmd Command) (*Result, error) {
-	agg, err := payment.New(
-		cmd.PaymentID, cmd.InvoiceID, cmd.Amount, cmd.Kind, cmd.Mode,
-	)
+	agg, err := payment.New(cmd.PaymentID, cmd.InvoiceID, cmd.Amount, cmd.Kind, cmd.Mode)
 	if err != nil {
 		return nil, fmt.Errorf("create aggregate: %w", err)
 	}
 
+	// default metadata always overrides user metadata
 	defaultMeta := map[string]string{
 		"payment_id": agg.ID().String(),
 		"invoice_id": agg.InvoiceID().String(),
 		"kind":       cmd.Kind.String(),
 		"mode":       cmd.Mode.String(),
 	}
-	// user metadata + our defaults (наши ключи перекрывают пользовательские)
 	meta := lo.Assign(cmd.Metadata, defaultMeta)
 
 	out, err := h.Provider.CreatePayment(ctx, ports.CreatePaymentIn{
@@ -104,6 +107,7 @@ func (h *Handler) Handle(ctx context.Context, cmd Command) (*Result, error) {
 	if err := agg.Invariants(); err != nil {
 		return nil, fmt.Errorf("invariants: %w", err)
 	}
+
 	if err := h.Repo.Save(ctx, agg, 0); err != nil {
 		return nil, fmt.Errorf("save: %w", err)
 	}
