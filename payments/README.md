@@ -22,7 +22,7 @@ $> make help # show help message with all commands and targets
 #### Payments
 
 - [UC-1](./internal/usecases/create_payment/README.md) Create a payment for an invoice/order
-- [UC-2](./internal/usecases/confirm_payment/README.md) Confirm a pending payment (SCA/3DS)
+- [UC-2](./internal/usecases/confirm_payment/README.md) Confirms a pending payment (SCA/3DS)
 - [UC-3](./internal/usecases/capture_payment/README.md) Capture a previously authorized payment
 
 #### Refunds
