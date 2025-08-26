@@ -9,6 +9,7 @@ require (
 	github.com/looplab/fsm v1.0.3
 	github.com/samber/lo v1.51.0
 	github.com/shopspring/decimal v1.4.0
+	github.com/shortlink-org/go-sdk v0.0.0-20250825220122-a2783d0b2c9a
 	github.com/shortlink-org/shortlink v0.0.0-20250825180502-ca876fe87b2e
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.11.0
