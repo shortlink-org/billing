@@ -7,61 +7,151 @@
 package di
 
 import (
+	"context"
 	"github.com/google/wire"
 	"github.com/shortlink-org/billing/payments/internal/application/payments/usecase/create"
 	"github.com/shortlink-org/billing/payments/internal/application/payments/usecase/refund"
+	"github.com/shortlink-org/shortlink/pkg/di"
+	"github.com/shortlink-org/shortlink/pkg/di/pkg/autoMaxPro"
+	"github.com/shortlink-org/shortlink/pkg/di/pkg/config"
+	"github.com/shortlink-org/shortlink/pkg/di/pkg/context"
+	"github.com/shortlink-org/shortlink/pkg/di/pkg/logger"
+	"github.com/shortlink-org/shortlink/pkg/di/pkg/profiling"
+	"github.com/shortlink-org/shortlink/pkg/di/pkg/traicing"
+	"github.com/shortlink-org/shortlink/pkg/logger"
+	"github.com/shortlink-org/shortlink/pkg/observability/metrics"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // Injectors from wire.go:
 
-// InitializeCreateHandler wires up the create payment usecase handler
-func InitializeCreateHandler(cfg PaymentConfig) (*create.Handler, error) {
+func InitializePaymentService() (*PaymentService, func(), error) {
+	context, cleanup, err := ctx.New()
+	if err != nil {
+		return nil, nil, err
+	}
+	logger, cleanup2, err := logger_di.New(context)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	configConfig, err := config.New(logger)
+	if err != nil {
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
+	autoMaxProAutoMaxPro, cleanup3, err := autoMaxPro.New(logger)
+	if err != nil {
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
+	tracerProvider, cleanup4, err := traicing_di.New(context, logger)
+	if err != nil {
+		cleanup3()
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
+	monitoring, cleanup5, err := metrics.New(context, logger, tracerProvider)
+	if err != nil {
+		cleanup4()
+		cleanup3()
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
+	pprofEndpoint, err := profiling.New(context, logger)
+	if err != nil {
+		cleanup5()
+		cleanup4()
+		cleanup3()
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
 	paymentRepository := ProvidePaymentRepository()
-	paymentProvider := ProvidePaymentProvider(cfg)
-	handler := ProvideCreateHandler(paymentRepository, paymentProvider)
-	return handler, nil
-}
-
-// InitializeRefundHandler wires up the refund payment usecase handler
-func InitializeRefundHandler(cfg PaymentConfig) (*refund.Handler, error) {
-	paymentRepository := ProvidePaymentRepository()
-	paymentProvider := ProvidePaymentProvider(cfg)
-	handler := ProvideRefundHandler(paymentRepository, paymentProvider)
-	return handler, nil
-}
-
-// InitializePaymentUsecases wires up all payment usecase handlers
-func InitializePaymentUsecases(cfg PaymentConfig) (*PaymentUsecases, error) {
-	paymentRepository := ProvidePaymentRepository()
-	paymentProvider := ProvidePaymentProvider(cfg)
+	paymentProvider, err := ProvidePaymentProvider()
+	if err != nil {
+		cleanup5()
+		cleanup4()
+		cleanup3()
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
 	handler := ProvideCreateHandler(paymentRepository, paymentProvider)
 	refundHandler := ProvideRefundHandler(paymentRepository, paymentProvider)
-	paymentUsecases := &PaymentUsecases{
-		CreatePayment: handler,
-		RefundPayment: refundHandler,
+	paymentService, err := NewPaymentService(context, logger, configConfig, autoMaxProAutoMaxPro, tracerProvider, monitoring, pprofEndpoint, handler, refundHandler)
+	if err != nil {
+		cleanup5()
+		cleanup4()
+		cleanup3()
+		cleanup2()
+		cleanup()
+		return nil, nil, err
 	}
-	return paymentUsecases, nil
+	return paymentService, func() {
+		cleanup5()
+		cleanup4()
+		cleanup3()
+		cleanup2()
+		cleanup()
+	}, nil
 }
 
 // wire.go:
 
-// Wire provider sets for dependency injection
-var (
-	// InfrastructureSet provides all infrastructure dependencies
-	InfrastructureSet = wire.NewSet(
-		ProvidePaymentRepository,
-		ProvidePaymentProvider,
-	)
+type PaymentService struct {
+	Log        logger.Logger
+	Config     *config.Config
+	AutoMaxPro autoMaxPro.AutoMaxPro
+	Context    context.Context
 
-	// UsecaseSet provides all usecase handlers
-	UsecaseSet = wire.NewSet(
-		ProvideCreateHandler,
-		ProvideRefundHandler,
-	)
+	Tracer        trace.TracerProvider
+	Metrics       *metrics.Monitoring
+	PprofEndpoint profiling.PprofEndpoint
 
-	// AllProviders combines all provider sets
-	AllProviders = wire.NewSet(
-		InfrastructureSet,
-		UsecaseSet,
-	)
+	CreatePayment *create.Handler
+	RefundPayment *refund.Handler
+}
+
+var InfrastructureSet = wire.NewSet(
+	ProvidePaymentRepository,
+	ProvidePaymentProvider,
 )
+
+var UsecaseSet = wire.NewSet(
+	ProvideCreateHandler,
+	ProvideRefundHandler,
+)
+
+var PaymentSet = wire.NewSet(di.DefaultSet, InfrastructureSet,
+	UsecaseSet,
+	NewPaymentService,
+)
+
+func NewPaymentService(ctx2 context.Context,
+
+	log logger.Logger,
+	cfg *config.Config,
+	auto autoMaxPro.AutoMaxPro,
+	tr trace.TracerProvider,
+	mon *metrics.Monitoring,
+	pprof profiling.PprofEndpoint,
+	createUC *create.Handler,
+	refundUC *refund.Handler,
+) (*PaymentService, error) {
+	return &PaymentService{
+		Context:       ctx2,
+		Log:           log,
+		Config:        cfg,
+		AutoMaxPro:    auto,
+		Tracer:        tr,
+		Metrics:       mon,
+		PprofEndpoint: pprof,
+		CreatePayment: createUC,
+		RefundPayment: refundUC,
+	}, nil
+}

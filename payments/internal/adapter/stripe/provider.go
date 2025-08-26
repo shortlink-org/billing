@@ -1,18 +1,33 @@
 package stripeadp
 
-import "github.com/stripe/stripe-go/v82"
+import (
+	"errors"
 
-// Config holds configuration for the Stripe provider.
-type Config struct{ 
-	APIKey string 
-}
+	"github.com/spf13/viper"
+	"github.com/stripe/stripe-go/v82"
+)
+
+var (
+	// ErrMissingAPIKey is returned when STRIPE_API_KEY is not set.
+	ErrMissingAPIKey = errors.New("stripe: missing STRIPE_API_KEY")
+)
 
 // Provider implements PaymentProvider interface for Stripe.
-type Provider struct{ 
-	c *stripe.Client 
+type Provider struct {
+	client *stripe.Client
 }
 
-// New creates a new Stripe provider with the given configuration.
-func New(cfg Config) *Provider {
-	return &Provider{c: stripe.NewClient(cfg.APIKey)}
+// New creates a Stripe client using STRIPE_API_KEY from env.
+// Example: export STRIPE_API_KEY=sk_test_123...
+func New() (*Provider, error) {
+	viper.AutomaticEnv()
+
+	apiKey := viper.GetString("STRIPE_API_KEY")
+	if apiKey == "" {
+		return nil, ErrMissingAPIKey
+	}
+
+	client := stripe.NewClient(apiKey)
+
+	return &Provider{client: client}, nil
 }

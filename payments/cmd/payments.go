@@ -20,7 +20,7 @@ func main() {
 	viper.SetDefault("SERVICE_NAME", "shortlink-payments")
 
 	// Init a new service
-	service, cleanup, err := payments_di.InitializeAuthService()
+	service, cleanup, err := payments_di.InitializePaymentService()
 	if err != nil { // TODO: use as helpers
 		panic(err)
 	}

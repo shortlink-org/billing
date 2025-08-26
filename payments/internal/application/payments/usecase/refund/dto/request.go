@@ -13,7 +13,7 @@ type RefundRequestDTO struct {
 	Metadata  map[string]string `json:"metadata,omitempty"`
 }
 
-// ToCommand converts RefundRequestDTO to internal Command.
+// ToCommand converts RefundRequestDTO to the domain Command.
 func (dto RefundRequestDTO) ToCommand() (Command, error) {
 	paymentID, err := uuid.Parse(dto.PaymentID)
 	if err != nil {

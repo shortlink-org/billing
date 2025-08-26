@@ -96,7 +96,8 @@ func (h *Handler) Handle(ctx context.Context, cmd Command) (*Result, error) {
 			return nil, err
 		}
 	case ports.ProviderStatusFailed:
-		if err := agg.Fail(ctx, eventv1.FailureReason_FAILURE_REASON_PROVIDER_ERROR); err != nil {
+		// провайдер/интеграционная ошибка -> NETWORK_ERROR
+		if err := agg.Fail(ctx, eventv1.FailureReason_FAILURE_REASON_NETWORK_ERROR); err != nil {
 			return nil, err
 		}
 	default:
