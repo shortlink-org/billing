@@ -21,23 +21,23 @@ $> make help # show help message with all commands and targets
 
 #### Payments
 
-- [UC-1](./internal/usecases/create_payment/README.md) Create a payment for an invoice/order
-- [UC-2](./internal/usecases/confirm_payment/README.md) Confirms a pending payment (SCA/3DS)
-- [UC-3](./internal/usecases/capture_payment/README.md) Capture a previously authorized payment
+- [UC-1](./internal/application/payments/usecase/create/README.md) Create a payment for an invoice/order
+- [UC-2] _(Not implemented yet)_ Confirm a pending payment (SCA/3DS)
+- [UC-3] _(Not implemented yet)_ Capture a previously authorized payment
 
 #### Refunds
 
-- [UC-4](./internal/usecases/refund_payment/README.md) Refund a payment (full or partial)
+- [UC-4](./internal/application/payments/usecase/refund/README.md) Refund a payment (full or partial)
 
 #### Subscriptions
 
-- [UC-5](./internal/usecases/create_subscription/README.md) Create a new subscription for a customer
-- [UC-6](./internal/usecases/cancel_subscription/README.md) Cancel an active subscription
+- [UC-5] _(Not implemented yet)_ Create a new subscription for a customer
+- [UC-6] _(Not implemented yet)_ Cancel an active subscription
 
 #### Billing Cycle
 
-- [UC-7](./internal/usecases/run_billing_cycle/README.md) Run scheduled subscription billing cycle
+- [UC-7] _(Not implemented yet)_ Run scheduled subscription billing cycle
 
 #### Webhooks
 
-- [UC-8](./internal/usecases/handle_webhook/README.md) Handle provider webhook events idempotently
+- [UC-8] _(Not implemented yet)_ Handle provider webhook events idempotently
