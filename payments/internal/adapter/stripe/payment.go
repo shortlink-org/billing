@@ -9,6 +9,7 @@ import (
 
 	"github.com/shortlink-org/billing/payments/internal/application/payments/ports"
 	"github.com/shortlink-org/billing/payments/internal/domain/payment/ledger"
+	"github.com/shortlink-org/billing/payments/internal/dto"
 )
 
 // CreatePayment creates a new payment intent through Stripe.
@@ -57,35 +58,16 @@ func (p *Provider) CreatePayment(ctx context.Context, in ports.CreatePaymentIn) 
 		Provider:     ports.ProviderStripe,
 		ProviderID:   pi.ID,
 		ClientSecret: pi.ClientSecret, // return only to API caller, never to events
-		Status:       mapPIStatus(pi),
+		Status:       dto.MapPIStatus(pi),
 	}
 
 	switch out.Status {
 	case ports.ProviderStatusRequiresCapture:
-		out.Authorized = fromMinor(pi.Currency, pi.Amount)
+		out.Authorized = dto.FromMinor(pi.Currency, pi.Amount)
 	case ports.ProviderStatusSucceeded:
-		out.Captured = fromMinor(pi.Currency, pi.AmountReceived)
+		out.Captured = dto.FromMinor(pi.Currency, pi.AmountReceived)
 	}
 
 	return out, nil
 }
 
-// mapPIStatus maps Stripe PaymentIntent status to provider status.
-func mapPIStatus(pi *stripe.PaymentIntent) ports.ProviderStatus {
-	switch pi.Status {
-	case stripe.PaymentIntentStatusRequiresAction:
-		return ports.ProviderStatusRequiresAction
-	case stripe.PaymentIntentStatusRequiresCapture:
-		return ports.ProviderStatusRequiresCapture
-	case stripe.PaymentIntentStatusSucceeded:
-		return ports.ProviderStatusSucceeded
-	case stripe.PaymentIntentStatusRequiresPaymentMethod,
-		stripe.PaymentIntentStatusRequiresConfirmation,
-		stripe.PaymentIntentStatusProcessing:
-		return ports.ProviderStatusPending
-	case stripe.PaymentIntentStatusCanceled:
-		return ports.ProviderStatusCanceled
-	default:
-		return ports.ProviderStatusUnknown
-	}
-}
