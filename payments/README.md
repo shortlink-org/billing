@@ -1,6 +1,6 @@
 # Payments
 
-<img width='200' height='200' src="./docs/public/logo.svg">
+<img width='200' height='200' src="./docs/public/logo.png">
 
 > [!NOTE]
 > Service for work with payments.
