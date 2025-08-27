@@ -9,6 +9,7 @@ import (
 
 	"github.com/shortlink-org/billing/payments/internal/application/payments/ports"
 	"github.com/shortlink-org/billing/payments/internal/domain/payment/ledger"
+	"github.com/shortlink-org/billing/payments/internal/dto"
 )
 
 // RefundPayment creates a refund for a payment through Stripe.
@@ -54,25 +55,10 @@ func (p *Provider) RefundPayment(ctx context.Context, in ports.RefundPaymentIn) 
 	out := ports.RefundPaymentOut{
 		Provider: ports.ProviderStripe,
 		RefundID: r.ID,
-		Status:   mapRefundStatus(r),
-		Amount:   fromMinor(r.Currency, r.Amount),
+		Status:   dto.MapRefundStatus(r),
+		Amount:   dto.FromMinor(r.Currency, r.Amount),
 	}
 
 	return out, nil
 }
 
-// mapRefundStatus maps Stripe refund status to provider status.
-func mapRefundStatus(r *stripe.Refund) ports.ProviderStatus {
-	switch r.Status {
-	case stripe.RefundStatusSucceeded:
-		return ports.ProviderStatusSucceeded
-	case stripe.RefundStatusPending:
-		return ports.ProviderStatusPending
-	case stripe.RefundStatusFailed:
-		return ports.ProviderStatusFailed
-	case stripe.RefundStatusCanceled:
-		return ports.ProviderStatusCanceled
-	default:
-		return ports.ProviderStatusUnknown
-	}
-}
