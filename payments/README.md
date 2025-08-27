@@ -22,8 +22,8 @@ $> make help # show help message with all commands and targets
 #### Payments
 
 - [UC-1](./internal/application/payments/usecase/create/README.md) Create a payment for an invoice/order
-- [UC-2] _(Not implemented yet)_ Confirm a pending payment (SCA/3DS)
-- [UC-3] _(Not implemented yet)_ Capture a previously authorized payment
+- [UC-2](./#) Confirm a pending payment (SCA/3DS)
+- [UC-3](./#) Capture a previously authorized payment
 
 #### Refunds
 
@@ -31,13 +31,13 @@ $> make help # show help message with all commands and targets
 
 #### Subscriptions
 
-- [UC-5] _(Not implemented yet)_ Create a new subscription for a customer
-- [UC-6] _(Not implemented yet)_ Cancel an active subscription
+- [UC-5](./#) Create a new subscription for a customer
+- [UC-6](./#) Cancel an active subscription
 
 #### Billing Cycle
 
-- [UC-7] _(Not implemented yet)_ Run scheduled subscription billing cycle
+- [UC-7](./#) Run scheduled subscription billing cycle
 
 #### Webhooks
 
-- [UC-8] _(Not implemented yet)_ Handle provider webhook events idempotently
+- [UC-8](./#) Handle provider webhook events idempotently
