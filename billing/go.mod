@@ -15,7 +15,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/segmentio/encoding v0.5.3
 	github.com/shopspring/decimal v1.4.0
-	github.com/shortlink-org/shortlink v0.0.0-20250531003000-510e6143a4d1
+	github.com/shortlink-org/shortlink 56d0e0710b60
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.11.0
 	github.com/stripe/stripe-go/v81 v81.4.0
