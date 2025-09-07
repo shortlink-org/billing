@@ -21,11 +21,11 @@ importers:
         specifier: ^7.3.0
         version: 7.3.0(@emotion/cache@11.14.0)(@emotion/react@11.13.5(@types/react@19.1.12)(react@19.1.1))(@types/react@19.1.12)(next@15.5.2(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)
       '@ory/client':
-        specifier: ^1.21.5
-        version: 1.22.0
+        specifier: ^1.22.1
+        version: 1.22.1
       '@ory/integrations':
         specifier: ^1.3.1
-        version: 1.3.1(@ory/client@1.22.0)(next@15.5.2(react-dom@19.1.1(react@19.1.1))(react@19.1.1))
+        version: 1.3.1(@ory/client@1.22.1)(next@15.5.2(react-dom@19.1.1(react@19.1.1))(react@19.1.1))
       axios:
         specifier: ^1.11.0
         version: 1.11.0
@@ -61,7 +61,7 @@ importers:
         specifier: ^8.5.6
         version: 8.5.6
       tailwindcss:
-        specifier: ^4.1.13
+        specifier: ^4.1.12
         version: 4.1.13
       typescript:
         specifier: ^5.9.2
@@ -100,6 +100,10 @@ packages:
 
   '@babel/runtime@7.28.3':
     resolution: {integrity: sha512-9uIQ10o0WGdpP6GDhXcdOJPJuDgFtIDtN/9+ArJQ2NAfAmiuhTQdzkaTGR33v43GYS2UrSA0eX2pPPHoFVvpxA==}
+    engines: {node: '>=6.9.0'}
+
+  '@babel/runtime@7.28.4':
+    resolution: {integrity: sha512-Q/N6JNWvIvPnLDvjlE1OUBLPQHH6l3CltCEsHIujp45zQUSSh8K+gHnaEX45yAT1nyngnINhvWtzN+Nb9D8RAQ==}
     engines: {node: '>=6.9.0'}
 
   '@babel/template@7.27.2':
@@ -541,8 +545,8 @@ packages:
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
 
-  '@ory/client@1.22.0':
-    resolution: {integrity: sha512-pwU4RmjQf3ApV5iRrXMocVPhn5Fi8JhkVfW7K+1B/M6oym+Rnmqf4n+uevbZUk6Z9Q5qCnRHUjbzOfMWS16IXA==}
+  '@ory/client@1.22.1':
+    resolution: {integrity: sha512-8q9ov+19KTLQ+kkeC5vy8JOqRXuN+v21tzfB7Mdz1z/vuPI2vQ+2Vt7yTjnNedCHCglSERP+d4+8r9EIiGRvsg==}
 
   '@ory/integrations@1.3.1':
     resolution: {integrity: sha512-lh5YdpIJVLG76G5NUgvMuxsl81ep/W98ImJwOQkVIOzSFeWVMxZI0Xpndvche7TSE8MWqtrb0xfWXTV05uEezQ==}
@@ -2018,6 +2022,8 @@ snapshots:
 
   '@babel/runtime@7.28.3': {}
 
+  '@babel/runtime@7.28.4': {}
+
   '@babel/template@7.27.2':
     dependencies:
       '@babel/code-frame': 7.27.1
@@ -2091,7 +2097,7 @@ snapshots:
 
   '@emotion/react@11.13.5(@types/react@19.1.12)(react@19.1.1)':
     dependencies:
-      '@babel/runtime': 7.28.3
+      '@babel/runtime': 7.28.4
       '@emotion/babel-plugin': 11.13.5
       '@emotion/cache': 11.14.0
       '@emotion/serialize': 1.3.3
@@ -2437,15 +2443,15 @@ snapshots:
 
   '@nolyfill/is-core-module@1.0.39': {}
 
-  '@ory/client@1.22.0':
+  '@ory/client@1.22.1':
     dependencies:
       axios: 1.11.0
     transitivePeerDependencies:
       - debug
 
-  '@ory/integrations@1.3.1(@ory/client@1.22.0)(next@15.5.2(react-dom@19.1.1(react@19.1.1))(react@19.1.1))':
+  '@ory/integrations@1.3.1(@ory/client@1.22.1)(next@15.5.2(react-dom@19.1.1(react@19.1.1))(react@19.1.1))':
     dependencies:
-      '@ory/client': 1.22.0
+      '@ory/client': 1.22.1
       '@types/tldjs': 2.3.4
       cookie: 1.0.2
       istextorbinary: 9.5.0
