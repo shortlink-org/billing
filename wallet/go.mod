@@ -6,7 +6,7 @@ require (
 	github.com/ethereum/go-ethereum v1.16.3
 	github.com/google/wire v0.7.0
 	github.com/shortlink-org/shortlink 56d0e0710b60
-	github.com/spf13/viper v1.20.1
+	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
 )
 
