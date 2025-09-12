@@ -14,7 +14,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/stripe/stripe-go/v82 v82.5.0
 	go.opentelemetry.io/otel/trace v1.38.0
-	google.golang.org/genproto v0.0.0-20250818200422-3122310a409c
+	google.golang.org/genproto 97024824d090
 	google.golang.org/protobuf v1.36.9
 )
 
