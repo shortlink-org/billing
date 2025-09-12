@@ -10,7 +10,7 @@ require (
 	github.com/samber/lo v1.51.0
 	github.com/shopspring/decimal v1.4.0
 	github.com/shortlink-org/shortlink 56d0e0710b60
-	github.com/spf13/viper v1.20.1
+	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
 	github.com/stripe/stripe-go/v82 v82.5.0
 	go.opentelemetry.io/otel/trace v1.38.0
