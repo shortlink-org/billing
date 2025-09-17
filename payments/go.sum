@@ -506,6 +506,8 @@ github.com/shopspring/decimal v1.4.0 h1:bxl37RwXBklmTi0C79JfXCEBD1cqqHt0bbgBAGFp
 github.com/shopspring/decimal v1.4.0/go.mod h1:gawqmDU56v4yIKSwfBSFip1HdCCXN8/+DMd9qYNcwME=
 github.com/shortlink-org/go-sdk/config v0.0.0-20250826211159-82e90734f4da h1:xxHFZsfaGEn89naNjxjl3FWJ/t4OcAYg0QC0eIh2QLo=
 github.com/shortlink-org/go-sdk/config v0.0.0-20250826211159-82e90734f4da/go.mod h1:3FoOjX741zyfIMKjBaQ9bYCS7Bb7fmxm+3kRQKp+SVc=
+github.com/shortlink-org/go-sdk/config v0.0.0-20250912225626-772d88913fba h1:gdx22qVtqpw4zR8IWnmAKPHjCoG8PHWINzN09sgWr/k=
+github.com/shortlink-org/go-sdk/config v0.0.0-20250912225626-772d88913fba/go.mod h1:knX22tU1FqXSxNZGqaTKtrt5XRcc43NDAuE3tZsQ+IU=
 github.com/shortlink-org/go-sdk/logger v0.0.0-20250912225626-772d88913fba h1:Wft5vJiVTTW0GqSRblYItM1hIkoCXzZqRslKgiG3d2Y=
 github.com/shortlink-org/go-sdk/logger v0.0.0-20250912225626-772d88913fba/go.mod h1:LbbOBkx9+gQdPl8OXI4iRbuYug3ongRSfQMwVRazBZM=
 github.com/shortlink-org/shortlink v0.0.0-20250831172403-56d0e0710b60 h1:cX5A2HLyqoD5s322/ryb0po/HLvuKYRLzEs1RfFnE2c=
