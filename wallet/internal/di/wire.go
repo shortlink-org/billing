@@ -11,8 +11,8 @@ package wallet_di
 import (
 	"github.com/google/wire"
 
+	"github.com/shortlink-org/go-sdk/logger"
 	"github.com/shortlink-org/shortlink/pkg/di"
-	"github.com/shortlink-org/shortlink/pkg/logger"
 )
 
 type WalletService struct {

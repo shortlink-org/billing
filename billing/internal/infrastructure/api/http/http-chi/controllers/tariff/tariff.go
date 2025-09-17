@@ -6,8 +6,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/segmentio/encoding/json"
 
-	billing "github.com/shortlink-org/shortlink/boundaries/billing/billing/internal/domain/tariff/v1"
-	tariff_application "github.com/shortlink-org/shortlink/boundaries/billing/billing/internal/usecases/tariff"
+	billing "github.com/shortlink-org/billing/billing/internal/domain/tariff/v1"
+	tariff_application "github.com/shortlink-org/billing/billing/internal/usecases/tariff"
 )
 
 type API struct {

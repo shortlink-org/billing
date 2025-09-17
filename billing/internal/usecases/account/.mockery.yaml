@@ -5,6 +5,6 @@ mockname: "{{.InterfaceName}}"
 outpkg: "{{.PackageName}}mock"
 filename: "{{.InterfaceName}}.go"
 packages:
-  github.com/shortlink-org/shortlink/boundaries/billing/billing/internal/infrastructure/repository/account:
+  github.com/shortlink-org/billing/billing/internal/infrastructure/repository/account:
     interfaces:
       Repository:

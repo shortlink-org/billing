@@ -3,8 +3,8 @@ package order_application
 import (
 	"context"
 
-	billing "github.com/shortlink-org/shortlink/boundaries/billing/billing/internal/domain/order/v1"
-	"github.com/shortlink-org/shortlink/pkg/logger"
+	billing "github.com/shortlink-org/billing/billing/internal/domain/order/v1"
+	"github.com/shortlink-org/go-sdk/logger"
 	"github.com/shortlink-org/shortlink/pkg/pattern/eventsourcing"
 )
 

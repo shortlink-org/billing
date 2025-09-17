@@ -7,7 +7,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 
-	billing "github.com/shortlink-org/shortlink/boundaries/billing/billing/internal/domain/payment/v1"
+	billing "github.com/shortlink-org/billing/billing/internal/domain/payment/v1"
 	eventsourcing "github.com/shortlink-org/shortlink/pkg/pattern/eventsourcing/domain/eventsourcing/v1"
 )
 

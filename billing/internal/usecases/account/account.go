@@ -2,13 +2,13 @@ package account_application
 
 import (
 	"context"
+	"log/slog"
 
-	domain "github.com/shortlink-org/shortlink/boundaries/billing/billing/internal/domain/account/v1"
-	"github.com/shortlink-org/shortlink/boundaries/billing/billing/internal/domain/account/v1/rules"
-	account_repository "github.com/shortlink-org/shortlink/boundaries/billing/billing/internal/infrastructure/repository/account"
+	domain "github.com/shortlink-org/billing/billing/internal/domain/account/v1"
+	"github.com/shortlink-org/billing/billing/internal/domain/account/v1/rules"
+	account_repository "github.com/shortlink-org/billing/billing/internal/infrastructure/repository/account"
+	"github.com/shortlink-org/go-sdk/logger"
 	"github.com/shortlink-org/shortlink/pkg/db"
-	"github.com/shortlink-org/shortlink/pkg/logger"
-	"github.com/shortlink-org/shortlink/pkg/logger/field"
 	"github.com/shortlink-org/shortlink/pkg/notify"
 	"github.com/shortlink-org/shortlink/pkg/pattern/specification"
 )
@@ -41,9 +41,7 @@ func New(ctx context.Context, log logger.Logger, conn db.DB) (*AccountService, e
 	notify.Subscribe(uint32(domain.Event_EVENT_ACCOUNT_NEW), service)
 	notify.Subscribe(uint32(domain.Event_EVENT_ACCOUNT_DELETE), service)
 
-	log.Info("init usecase", field.Fields{
-		"name": "account",
-	})
+	log.Info("init usecase", slog.String("name", "account"))
 
 	return service, nil
 }

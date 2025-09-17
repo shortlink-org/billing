@@ -6,13 +6,13 @@ Billing-service
 package main
 
 import (
+	"log/slog"
 	"os"
 
 	"github.com/spf13/viper"
 
-	billing_di "github.com/shortlink-org/shortlink/boundaries/billing/billing/internal/di"
+	billing_di "github.com/shortlink-org/billing/billing/internal/di"
 	"github.com/shortlink-org/shortlink/pkg/graceful_shutdown"
-	"github.com/shortlink-org/shortlink/pkg/logger/field"
 )
 
 func main() {
@@ -35,9 +35,7 @@ func main() {
 
 	cleanup()
 
-	service.Log.Info("Service stopped", field.Fields{
-		"signal": signal.String(),
-	})
+	service.Log.Info("Service stopped", slog.String("signal", signal.String()))
 
 	// Exit Code 143: Graceful Termination (SIGTERM)
 	os.Exit(143) //nolint:gocritic // exit code 143 is used to indicate graceful termination

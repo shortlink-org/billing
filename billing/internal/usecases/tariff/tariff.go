@@ -3,10 +3,10 @@ package tariff_application
 import (
 	"context"
 
-	domain "github.com/shortlink-org/shortlink/boundaries/billing/billing/internal/domain/tariff/v1"
-	tariff_repository "github.com/shortlink-org/shortlink/boundaries/billing/billing/internal/infrastructure/repository/tariff"
+	domain "github.com/shortlink-org/billing/billing/internal/domain/tariff/v1"
+	tariff_repository "github.com/shortlink-org/billing/billing/internal/infrastructure/repository/tariff"
+	"github.com/shortlink-org/go-sdk/logger"
 	"github.com/shortlink-org/shortlink/pkg/db"
-	"github.com/shortlink-org/shortlink/pkg/logger"
 	"github.com/shortlink-org/shortlink/pkg/logger/field"
 	"github.com/shortlink-org/shortlink/pkg/notify"
 )

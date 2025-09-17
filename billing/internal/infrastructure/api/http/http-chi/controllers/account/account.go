@@ -6,8 +6,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/segmentio/encoding/json"
 
-	billing "github.com/shortlink-org/shortlink/boundaries/billing/billing/internal/domain/account/v1"
-	account_application "github.com/shortlink-org/shortlink/boundaries/billing/billing/internal/usecases/account"
+	billing "github.com/shortlink-org/billing/billing/internal/domain/account/v1"
+	account_application "github.com/shortlink-org/billing/billing/internal/usecases/account"
 )
 
 type AccoutAPI struct {

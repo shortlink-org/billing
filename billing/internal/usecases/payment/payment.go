@@ -9,9 +9,8 @@ import (
 	"github.com/segmentio/encoding/json"
 	"github.com/spf13/viper"
 
-	billing "github.com/shortlink-org/shortlink/boundaries/billing/billing/internal/domain/payment/v1"
-	"github.com/shortlink-org/shortlink/pkg/logger"
-	"github.com/shortlink-org/shortlink/pkg/logger/field"
+	billing "github.com/shortlink-org/billing/billing/internal/domain/payment/v1"
+	"github.com/shortlink-org/go-sdk/logger"
 	"github.com/shortlink-org/shortlink/pkg/notify"
 	es "github.com/shortlink-org/shortlink/pkg/pattern/eventsourcing"
 	eventsourcing "github.com/shortlink-org/shortlink/pkg/pattern/eventsourcing/domain/eventsourcing/v1"

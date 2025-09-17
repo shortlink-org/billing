@@ -7,8 +7,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/segmentio/encoding/json"
 
-	billing "github.com/shortlink-org/shortlink/boundaries/billing/billing/internal/domain/payment/v1"
-	payment_application "github.com/shortlink-org/shortlink/boundaries/billing/billing/internal/usecases/payment"
+	billing "github.com/shortlink-org/billing/billing/internal/domain/payment/v1"
+	payment_application "github.com/shortlink-org/billing/billing/internal/usecases/payment"
 )
 
 type API struct {
