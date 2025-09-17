@@ -11,14 +11,14 @@ import (
 	"github.com/google/wire"
 	"github.com/shortlink-org/billing/payments/internal/application/payments/usecase/create"
 	"github.com/shortlink-org/billing/payments/internal/application/payments/usecase/refund"
+	"github.com/shortlink-org/go-sdk/config"
+	"github.com/shortlink-org/go-sdk/logger"
 	"github.com/shortlink-org/shortlink/pkg/di"
 	"github.com/shortlink-org/shortlink/pkg/di/pkg/autoMaxPro"
-	"github.com/shortlink-org/go-sdk/config"
 	"github.com/shortlink-org/shortlink/pkg/di/pkg/context"
 	"github.com/shortlink-org/shortlink/pkg/di/pkg/logger"
 	"github.com/shortlink-org/shortlink/pkg/di/pkg/profiling"
 	"github.com/shortlink-org/shortlink/pkg/di/pkg/traicing"
-	"github.com/shortlink-org/go-sdk/logger"
 	"github.com/shortlink-org/shortlink/pkg/observability/metrics"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -35,7 +35,7 @@ func InitializePaymentService() (*PaymentService, func(), error) {
 		cleanup()
 		return nil, nil, err
 	}
-	configConfig, err := config.New(logger)
+	configConfig, err := config.New()
 	if err != nil {
 		cleanup2()
 		cleanup()
