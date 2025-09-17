@@ -43,10 +43,10 @@ importers:
         version: 11.0.5(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
     devDependencies:
       '@types/node':
-        specifier: ^24.4.0
+        specifier: ^24.3.0
         version: 24.4.0
       '@types/react':
-        specifier: ^19.1.13
+        specifier: ^19.1.11
         version: 19.1.13
       '@types/react-dom':
         specifier: ^19.1.7
