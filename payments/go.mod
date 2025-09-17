@@ -1,6 +1,6 @@
 module github.com/shortlink-org/billing/payments
 
-go 1.25.0
+go 1.25.1
 
 require (
 	github.com/cucumber/godog v0.15.1
