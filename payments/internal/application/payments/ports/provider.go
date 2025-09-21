@@ -11,7 +11,8 @@ import (
 type Provider string
 
 const (
-	ProviderStripe Provider = "stripe"
+	ProviderStripe  Provider = "stripe"
+	ProviderTinkoff Provider = "tinkoff"
 )
 
 // Normalized provider status after CreatePayment.
@@ -58,10 +59,10 @@ type RefundPaymentIn struct {
 }
 
 type RefundPaymentOut struct {
-	Provider   Provider
-	RefundID   string // e.g., Stripe Refund ID
-	Status     ProviderStatus
-	Amount     *money.Money // actual refunded amount from provider
+	Provider Provider
+	RefundID string // e.g., Stripe Refund ID
+	Status   ProviderStatus
+	Amount   *money.Money // actual refunded amount from provider
 }
 
 type PaymentProvider interface {

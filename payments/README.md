@@ -13,6 +13,13 @@ We use Makefile for build and deploy.
 $> make help # show help message with all commands and targets
 ```
 
+### Payment Providers
+
+The service supports multiple payment providers. Configuration details are available in each provider's documentation:
+
+- **[Stripe Provider](./internal/adapter/stripe/README.md)** - Default provider for international payments
+- **[Tinkoff Provider](./internal/adapter/tinkoff/README.md)** - Provider for Russian payments with TLS client certificate authentication
+
 ### ADR
 
 - [ADR-0001](./docs/ADR/decisions/0001-init.md) - Init project
