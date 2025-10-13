@@ -18,7 +18,7 @@ require (
 	github.com/shortlink-org/shortlink v0.0.0-20250831172403-56d0e0710b60
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
-	github.com/stripe/stripe-go/v82 v82.5.0
+	github.com/stripe/stripe-go/v82 v82.5.1
 	go.opentelemetry.io/otel v1.38.0
 	go.opentelemetry.io/otel/trace v1.38.0
 	go.uber.org/goleak v1.3.0
