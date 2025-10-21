@@ -7,7 +7,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/google/wire v0.7.0
 	github.com/looplab/fsm v1.0.3
-	github.com/samber/lo v1.51.0
+	github.com/samber/lo v1.52.0
 	github.com/shopspring/decimal v1.4.0
 	github.com/shortlink-org/go-sdk/config 87e94558595e
 	github.com/shortlink-org/go-sdk/logger 87f230fd779a
