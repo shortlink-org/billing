@@ -5,7 +5,7 @@ go 1.25.1
 require (
 	github.com/ethereum/go-ethereum v1.16.5
 	github.com/google/wire v0.7.0
-	github.com/shortlink-org/go-sdk/logger v0.0.0-20250828121506-ed6b3e0c8136
+	github.com/shortlink-org/go-sdk/logger 8c030dab4702
 	github.com/shortlink-org/shortlink v0.0.0-20250831172403-56d0e0710b60
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
