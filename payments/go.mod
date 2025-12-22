@@ -1,6 +1,6 @@
 module github.com/shortlink-org/billing/payments
 
-go 1.25.1
+go 1.25.3
 
 require (
 	github.com/cucumber/godog v0.15.1
@@ -9,16 +9,17 @@ require (
 	github.com/looplab/fsm v1.0.3
 	github.com/samber/lo v1.52.0
 	github.com/shopspring/decimal v1.4.0
-	github.com/shortlink-org/go-sdk/config 87e94558595e
-	github.com/shortlink-org/go-sdk/logger 87f230fd779a
+	github.com/shortlink-org/go-sdk/config v0.0.0-20251020193241-87e94558595e
+	github.com/shortlink-org/go-sdk/logger v0.0.0-20251012205922-87f230fd779a
 	github.com/shortlink-org/shortlink v0.0.0-20250831172403-56d0e0710b60
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
+	github.com/stripe/stripe-go/v82 v82.5.1
 	github.com/stripe/stripe-go/v83 v83.1.0
 	go.opentelemetry.io/otel/trace v1.38.0
-	google.golang.org/genproto v0.0.0-20250908214217-97024824d090
-	google.golang.org/genproto/googleapis/api v0.0.0-20250826171959-ef028d996bc1
-	google.golang.org/protobuf v1.36.10
+	google.golang.org/genproto v0.0.0-20251222181119-0a764e51fe1b
+	google.golang.org/genproto/googleapis/api v0.0.0-20251213004720-97cd9d5aeac2
+	google.golang.org/protobuf v1.36.11
 )
 
 require (
@@ -120,15 +121,15 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/automaxprocs v1.6.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/crypto v0.41.0 // indirect
-	golang.org/x/mod v0.27.0 // indirect
-	golang.org/x/net v0.43.0 // indirect
-	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/sys v0.35.0 // indirect
-	golang.org/x/text v0.28.0 // indirect
-	golang.org/x/tools v0.36.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250826171959-ef028d996bc1 // indirect
-	google.golang.org/grpc v1.75.0 // indirect
+	golang.org/x/crypto v0.43.0 // indirect
+	golang.org/x/mod v0.28.0 // indirect
+	golang.org/x/net v0.46.0 // indirect
+	golang.org/x/sync v0.17.0 // indirect
+	golang.org/x/sys v0.37.0 // indirect
+	golang.org/x/text v0.30.0 // indirect
+	golang.org/x/tools v0.37.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20251213004720-97cd9d5aeac2 // indirect
+	google.golang.org/grpc v1.76.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
