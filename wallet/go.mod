@@ -6,7 +6,7 @@ require (
 	github.com/ethereum/go-ethereum v1.16.5
 	github.com/google/wire v0.7.0
 	github.com/shortlink-org/go-sdk/logger 8c030dab4702
-	github.com/shortlink-org/shortlink v0.0.0-20250831172403-56d0e0710b60
+	github.com/shortlink-org/shortlink c95c9813d412
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
 )
