@@ -29,7 +29,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestPostgres(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancelCause(context.Background())
 
 	// Init logger
 	conf := config.Configuration{}
@@ -78,7 +78,7 @@ func TestPostgres(t *testing.T) {
 	}
 
 	t.Cleanup(func() {
-		cancel()
+		cancel(nil)
 
 		// When you're done, kill and remove the container
 		if err := pool.Purge(resource); err != nil {
