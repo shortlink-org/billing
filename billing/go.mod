@@ -15,7 +15,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/segmentio/encoding v0.5.3
 	github.com/shopspring/decimal v1.4.0
-	github.com/shortlink-org/go-sdk/config v0.0.0-20250826211159-82e90734f4da
+	github.com/shortlink-org/go-sdk/config 15cb7da01fe0
 	github.com/shortlink-org/go-sdk/logger v0.0.0-20250912225626-772d88913fba
 	github.com/shortlink-org/shortlink v0.0.0-20250831172403-56d0e0710b60
 	github.com/spf13/viper v1.21.0
