@@ -1,6 +1,6 @@
 module github.com/shortlink-org/billing/payments
 
-go 1.25.1
+go 1.25.5
 
 require (
 	github.com/cucumber/godog v0.15.1
@@ -9,7 +9,7 @@ require (
 	github.com/looplab/fsm v1.0.3
 	github.com/samber/lo v1.52.0
 	github.com/shopspring/decimal v1.4.0
-	github.com/shortlink-org/go-sdk/config v0.0.0-20250826211159-82e90734f4da
+	github.com/shortlink-org/go-sdk/config v0.0.0-20260307200444-15cb7da01fe0
 	github.com/shortlink-org/go-sdk/logger v0.0.0-20250828121506-ed6b3e0c8136
 	github.com/shortlink-org/shortlink v0.0.0-20250831172403-56d0e0710b60
 	github.com/spf13/viper v1.21.0
@@ -23,8 +23,9 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/Masterminds/semver/v3 v3.3.1 // indirect
+	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/Unleash/unleash-go-sdk/v5 v5.0.3 // indirect
+	github.com/Unleash/unleash-go-sdk/v6 v6.2.0 // indirect
 	github.com/XSAM/otelsql v0.39.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
@@ -61,6 +62,7 @@ require (
 	github.com/hashicorp/go-memdb v1.3.4 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
+	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/heptiolabs/healthcheck v0.0.0-20211123025425-613501dd5deb // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -69,6 +71,7 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/johejo/golang-migrate-extra v0.0.0-20211005021153-c17dd75f8b4a // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
+	github.com/launchdarkly/eventsource v1.10.0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/mattn/go-sqlite3 v1.14.32 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
@@ -120,13 +123,13 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/automaxprocs v1.6.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/crypto v0.41.0 // indirect
-	golang.org/x/mod v0.27.0 // indirect
-	golang.org/x/net v0.43.0 // indirect
-	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/sys v0.40.0 // indirect
-	golang.org/x/text v0.28.0 // indirect
-	golang.org/x/tools v0.36.0 // indirect
+	golang.org/x/crypto v0.47.0 // indirect
+	golang.org/x/mod v0.32.0 // indirect
+	golang.org/x/net v0.49.0 // indirect
+	golang.org/x/sync v0.19.0 // indirect
+	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/text v0.34.0 // indirect
+	golang.org/x/tools v0.41.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250826171959-ef028d996bc1 // indirect
 	google.golang.org/grpc v1.75.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
